@@ -1,6 +1,6 @@
 'use strict';
 /* Ya Yönet Ya Devret 2.0 — strateji ve mobil sistemler. */
-const VERSION='2.5.2';
+const VERSION='2.6.0';
 const LEGACY_DEF=JSON.parse(JSON.stringify(DEF));
 const LEGACY_GRID=grid.slice(), REGION_LAYOUT:RegionLayout[]=[], OLD_TO_NEW:number[]=[];
 // More strategic districts, without changing any international coastline/border.
@@ -102,7 +102,7 @@ mapActions=function(){const c=leads(me());if(!c)return[];const r=G.rs[G.sel],t=G
  return [add('conquest',`3–6 dönemlik ilerleme. Tahkimat ${r0(r.fort)}, savunma ordusu ${r0(t.army)}. Her dönem ikmal gideri vardır.`,30,friendly?'İttifak veya himaye altındaki devlete saldıramazsın':!border?'Bölgeyle kara sınırın olmalı':c.army<20?'En az 20 ordu gerekli':null),
  add('amphibious','Kıyıdan kıyıya çıkarma; donanma en az 30. Kara harekâtına göre daha zor ve pahalı.',45,friendly?'Dost devlete saldıramazsın':!seaRoute(c,r)?'Hedef kıyı olmalı ve 260 harita birimi içinde bir limanın bulunmalı':c.navy<30||c.army<25?'En az 30 donanma ve 25 ordu gerekli':null),
  add('destabilize','%65 olasılıkla yerel talepler artar ve protestolar başlar. Başarısızlık diplomasiye zarar verir.',18),add('election','Seçim çağrısı kabul edilirse 2 dönem kampanya, adaylar ve oy sayımı başlar.',15),add('independence','Ayrılıkçı örgütlenmeye destek. Referandum sonucu halka bağlıdır; otomatik toprak kazandırmaz.',25,independenceLock),
- add('alliance','İlişki 20 ve üzerindeyse %75 kabul şansı. Ortak savunma ve diplomatik yakınlık.',12,c.allies.includes(t.id)?'Zaten müttefiksin':(c.rel[t.id]||0)<20?'İlişki en az 20 olmalı':null),add('protectorate','Zayıf bir devlete koruma ve ekonomik destek öner. Egemenliği ve harita rengi korunur; savaşta destek ve hazine katkısı sağlar.',25,t.patron!=null?'Bu devlet zaten himaye altında':(c.rel[t.id]||0)<10?'İlişki en az 10 olmalı':t.army>=c.army||crs(t).length>crs(c).length?'Hedefin ordusu ve bölge sayısı senden büyük olmamalı':null)];
+ add('alliance','İlişki 20 ve üzerindeyse %75 kabul şansı. Ortak savunma ve diplomatik yakınlık.',12,c.allies.includes(t.id)?'Zaten müttefiksin':(c.rel[t.id]||0)<20?'İlişki en az 20 olmalı':null),add('protectorate','Zayıf bir devlete koruma ve ekonomik destek öner. Egemenliği ve harita rengi korunur; savaşta destek ve hazine katkısı sağlar.',25,c.patron!=null?'Himaye altındayken başka devlete himaye veremezsin':atWar(c.id,t.id)?'Önce barış yapılmalı':t.patron!=null?'Bu devlet zaten himaye altında':(c.rel[t.id]||0)<10?'İlişki en az 10 olmalı':t.army>=c.army||crs(t).length>crs(c).length?'Hedefin ordusu ve bölge sayısı senden büyük olmamalı':null)];
 };
 operationModal=function(s: Sheet){const battle=['conquest','amphibious'].includes(s.kind),r=G.rs[s.r];return `<div class="modalbg"><div class="modal band" role="dialog" aria-modal="true" aria-label="Emir onayı">${sceneHTML(battle?'war':s.kind==='election'?'vote':'diplomacy')}<div class="kick">${esc(r.n)} · EMİR ONAYI</div><h2>${OP_NAMES[s.kind]}</h2><p>${battle?'Harekât birkaç dönem sürer. Savunma, ikmal, ordular ve direnç sonucu etkiler. Savaş ilan edilir.':s.kind==='independence'?'Örgütlenme, protestolar ve referandum aşamaları izlenir. Bağımsızlığın ardından ittifak, himaye veya yeni bir fetih kararı verebilirsin.':'Emir bir sonraki dönemde değerlendirilir.'}</p><p>${s.cost} hazine ve 1 eylem. İptalde kaynak harcanmaz.</p><div class="acts"><button class="big prime" data-confirm-op="1"><b>Emri ver · ${s.cost} hazine</b></button><button class="big" data-close="1"><b>Vazgeç</b></button></div></div></div>`;};
 confirmOperation=function(){const s=ui.sheet,c=leads(me());if(!s||s.t!=='operation'||!c)return;const a=mapActions().find(a=>a.id==='op:'+s.kind);if(!a||can(a)||G.q.length)return;
@@ -158,20 +158,20 @@ function playerParty(c: Country){let i=c.parties.findIndex(p=>p.candidate===G.pi
 let voteForecast = function(c: Country){initParties(c);playerParty(c);const rs=crs(c),education=rs.reduce((s,r)=>s+r.edu,0)/(rs.length||1);
  const weights=c.parties.map((p,i)=>{const candidate=P(p.candidate);return Math.max(2,(i===c.incumbentParty?c.appr*.8:(100-c.appr)*.33+12)+(i===2?education*.1:0)+p.campaign*.8+candidate.org*.12+candidate.speech*.08+(p.candidate===G.pid?natSup(me(),c)*.18:0));});const sum=weights.reduce((a,b)=>a+b,0);return weights.map(w=>w/sum*100);
 }
-function allocateSeats(shares: number[]){const seats=shares.map(Math.floor);let remaining=100-seats.reduce((a,b)=>a+b,0);const order=shares.map((s,i)=>({i,frac:s-Math.floor(s)})).sort((a,b)=>b.frac-a.frac);for(let k=0;k<remaining;k++)seats[order[k%order.length].i]++;return seats;}
+function allocateSeats(shares: number[],total:number=100){const quotas=shares.map(s=>s*total/100),seats=quotas.map(Math.floor);let remaining=total-seats.reduce((a,b)=>a+b,0);const order=quotas.map((s,i)=>({i,frac:s-Math.floor(s)})).sort((a,b)=>b.frac-a.frac);for(let k=0;k<remaining;k++)seats[order[k%order.length].i]++;return seats;}
 function installGovernment(c: Country,indices: number[]){const winner=c.parties[indices[0]],p=P(winner.candidate),old=P(c.leader);if(old&&old.id!==p.id){old.pos=old.party?'muhalefet':'eski';if(old.id===G.pid)hist(old,'Genel seçimde görevi bıraktı');}
  if(p.id===G.pid&&c.leader!==G.pid)becomeLeader(p,c,'seçim ve koalisyon');else{c.leader=p.id;p.pos='lider';p.r=c.cap;}c.incumbentParty=indices[0];c.coalition=indices;c.pendingCoalition=null;c.stab=cl(c.stab+5);c.appr=cl(c.appr+3);
  const opp=c.parties.find((p,i)=>!indices.includes(i));if(opp){c.opp=opp.candidate;if(P(c.opp).id!==c.leader)P(c.opp).pos='muhalefet';}
  const pi=playerParty(c);if(pi>=0&&pi!==indices[0]&&indices.includes(pi))me().pos='bakan';
  say(`${c.n}: ${indices.map(i=>c.parties[i].name).join(' + ')} hükûmeti kuruldu.`);
 }
-let runElection = function(c: Country){const forecast=voteForecast(c),raw=forecast.map(x=>Math.max(1,x+rnd(-4,4))),sum=raw.reduce((a,b)=>a+b,0),shares=raw.map(x=>x/sum*100),seats=allocateSeats(shares);
- c.parties.forEach((p,i)=>{p.share=shares[i];p.seats=seats[i];p.campaign=0;});c.lastElection={turn:G.turn,parties:c.parties.map(p=>({name:p.name,share:p.share,seats:p.seats,candidate:p.candidate}))};G.electionHistory.unshift({c:c.id,...c.lastElection});G.electionHistory=G.electionHistory.slice(0,80);c.electionDue=G.turn+8;
+let runElection = function(c: Country){const independents=resolveIndependentSeats(c);const forecast=voteForecast(c),raw=forecast.map(x=>Math.max(1,x+rnd(-4,4))),sum=raw.reduce((a,b)=>a+b,0),shares=raw.map(x=>x/sum*100),seats=allocateSeats(shares,100-independents.length);
+ c.parties.forEach((p,i)=>{p.share=shares[i];p.seats=seats[i];p.campaign=0;});c.lastElection={turn:G.turn,parties:c.parties.map(p=>({name:p.name,share:p.share,seats:p.seats,candidate:p.candidate})).concat(independents.map(s=>({name:'Bağımsız · '+P(s.person).name,share:0,seats:1,candidate:s.person})))};G.electionHistory.unshift({c:c.id,...c.lastElection});G.electionHistory=G.electionHistory.slice(0,80);c.electionDue=G.turn+8;
  const order=c.parties.map((p,i)=>i).sort((a,b)=>seats[b]-seats[a]),top=order[0],pi=playerParty(c);if(pi>=0)me().cand=null;
  if(seats[top]>=51)installGovernment(c,[top]);
  else if(c.parties[top].candidate===G.pid){c.pendingCoalition={top,deadline:G.turn+2};notify(c,'Koalisyon görüşmeleri',`Hiçbir parti 51 sandalyeye ulaşamadı. Devlet ekranından iki dönem içinde ortak seç; aksi hâlde azınlık hükûmeti kurulur.`,'vote')}
  else{const partner=order.slice(1).find(i=>seats[top]+seats[i]>=51);if(partner!=null&&c.parties[partner].candidate===G.pid){c.pendingCoalition={top,deadline:G.turn+2,offer:partner};G.q.push({id:'coalitionOffer',c:c.id,top,partner});}else installGovernment(c,partner!=null?[top,partner]:[top]);}
- const results=c.parties.map(p=>`${p.name}: %${p.share.toFixed(1)} (${p.seats} sandalye)`).join(' · ');notify(c,'Genel seçim sonuçları',results,'vote');sfx('event');
+ const results=c.lastElection.parties.map(p=>`${p.name}: %${p.share.toFixed(1)} (${p.seats} sandalye)`).join(' · ');notify(c,'Genel seçim sonuçları',results,'vote');sfx('event');
 }
 function campaignAIParties(c:Country):void {
  if(G.turn%2!==0||!natElect(c))return;
@@ -286,11 +286,6 @@ render=function(){
 };
 let mapObserver:ResizeObserver,mapObservedBox:Element=null;
 function setupFixedMap(){const box=document.querySelector('.fixed-map'),stage=box?.querySelector<HTMLElement>('.map-stage');if(box===mapObservedBox)return;mapObserver?.disconnect();mapObservedBox=box;if(!box||!stage)return;const fit=()=>{const width=Math.min(box.clientWidth,box.clientHeight*W/H);stage.style.width=width+'px';stage.style.height=width*H/W+'px';};fit();mapObserver=new ResizeObserver(fit);mapObserver.observe(box);}
-// Only taps select a region. A touch scroll or accidental drag does not change the target.
-let mapPointer:{x:number;y:number;id:number}=null;
-document.addEventListener('pointerdown',e=>{if(eventElement(e).id==='map'&&!G.q.length&&!ui.sheet)mapPointer={x:e.clientX,y:e.clientY,id:e.pointerId};},true);
-document.addEventListener('pointerup',e=>{if(eventElement(e).id!=='map'||!mapPointer||e.pointerId!==mapPointer.id)return;const tap=Math.hypot(e.clientX-mapPointer.x,e.clientY-mapPointer.y)<10;mapPointer=null;if(!tap)return;const b=eventElement(e).getBoundingClientRect(),point=mapToWorld((e.clientX-b.left)/b.width*W,(e.clientY-b.top)/b.height*H),x=Math.floor(point.x),y=Math.floor(point.y);if(x<0||x>=W||y<0||y>=H)return;let id=grid[y*W+x];if(id<0){const near=G.rs.map(r=>({id:r.id,d:Math.hypot(r.x-x,r.y-y)})).sort((a,b)=>a.d-b.d)[0];if(near&&near.d<9)id=near.id;}if(id>=0){G.sel=id;ui.mapCountry=G.rs[id].c;render();}},true);
-document.addEventListener('pointercancel',()=>mapPointer=null,true);
 document.addEventListener('click',e=>{if(eventElement(e).id==='map'){e.stopImmediatePropagation();e.preventDefault();}},true);
 document.addEventListener('change',e=>{if(eventElement(e).id==='region-jump'){G.sel=+eventElement<HTMLInputElement | HTMLSelectElement>(e).value;render();}if(eventElement(e).id==='map-mode'&&isMapMode(eventElement<HTMLSelectElement>(e).value)){G.mapMode=eventElement<HTMLSelectElement>(e).value as MapMode;save();render();}});
 
@@ -332,3 +327,4 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(ui.applyingUpdate)location.reload();});
  window.addEventListener('load',async()=>{try{appRegistration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});markWaiting();appRegistration.addEventListener('updatefound',()=>{const worker=appRegistration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller){ui.updateReady=true;render();}});});}catch(e){ui.notice='Çevrimdışı dosyalar hazırlanamadı; internet bağlantısıyla oynayabilirsin.';render();}});
 }
+
