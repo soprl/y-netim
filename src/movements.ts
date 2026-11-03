@@ -22,15 +22,15 @@ function movementEligibility():string|null {
  if(G.ap<1)return '1 eylem gerekli.';
  return null;
 }
-function movementPanel():string {
+let movementPanel = function():string {
  const m=ownMovement();
  return `<section class="pn own-movement"><h3 class="h3">Silahlı hareket</h3>${m?`<h2>${esc(m.name)}</h2><div class="party-stats"><span>Güç ${r0(m.strength)}</span><span>Hareket desteği ${r0(m.support)}</span><span>${m.controlled.length} bölge</span></div><p class="sub">Haritada hedef bölgeyi seçip Emirler penceresinden kontrol mücadelesi başlat. Her bölge ayrı değerlendirilir; yönetimin karşı hamleleri ve yerel sadakat sonucu etkiler.</p>${m.country!=null?`<p class="sub">Bölgesel yönetim: ${esc(G.cs[m.country].n)}</p>`:''}`:`<p class="sub">Karakter modunda kurulabilir. 20 örgüt, 10 tanınırlık, 15 kişisel para ve 1 eylem gerekir. Başlangıç bölgesinden başlayarak komşu bölgelerde yönetim mücadelesi yürütülür.</p><button class="act" data-movement-open="1"><b>Silahlı hareket kur</b><span>${movementEligibility()||'Kuruluş koşulları sağlandı.'}</span></button>`}</section>`;
 }
-function movementForm():string {
+let movementForm = function():string {
  const why=movementEligibility();
  return dialog('Silahlı hareket kur',`<p>Hareketin adını sen belirle. Kuruluş tek başına hiçbir bölgeyi ele geçirmez.</p><label class="file-label">Hareket adı<input id="movement-name" maxlength="40" placeholder="Hareketin adı"></label><p class="sub">15 kişisel para ve 1 eylem. Devam eden kontrol mücadeleleri oyun dönemlerinde ilerler.</p>${why?`<p class="warn">${why}</p>`:''}${ui.partyError?`<p class="warn" role="alert">${esc(ui.partyError)}</p>`:''}`,`<button class="big prime" data-movement-found="1" ${why?'disabled':''}><b>Hareketi kur</b></button><button class="big" data-close="1"><b>Vazgeç</b></button>`,'war');
 }
-function foundMovement():void {
+let foundMovement = function():void {
  if(movementEligibility())return;
  const name=safeDisplayText(byId<HTMLInputElement>('movement-name').value.trim().replace(/\s+/g,' '));
  if(name.length<3||name.length>40){ui.partyError='Ad 3–40 karakter olmalı.';render();return;}
@@ -124,3 +124,4 @@ drawLifeMap=function(canvas:HTMLCanvasElement,time:number=0):void {
  const ctx=canvas.getContext('2d'),motion=!matchMedia('(prefers-reduced-motion:reduce)').matches;
  for(const order of G.controlCampaigns||[]){const m=G.armedMovements.find(a=>a.id===order.movement);if(!m)continue;const source=G.rs[m.controlled[0]??m.baseRegion],target=G.rs[order.r],a=worldToMap(source.x,source.y),b=worldToMap(target.x,target.y);ctx.save();ctx.strokeStyle='#d5a7e7';ctx.lineWidth=2;ctx.setLineDash([5,5]);ctx.lineDashOffset=motion?-time/130:0;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(b.x,b.y,9+(motion?Math.sin(time/300)*2:0),0,Math.PI*2);ctx.stroke();ctx.restore();}
 };
+

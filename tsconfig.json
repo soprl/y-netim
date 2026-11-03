@@ -31,6 +31,9 @@
     "src/movements.ts",
     "src/polish.ts",
     "src/policies.ts",
+    "src/map-navigation.ts",
+    "src/civic-tools.ts",
+    "src/subjects.ts",
     "src/boot.ts"
   ]
 }
