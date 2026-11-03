@@ -67,7 +67,8 @@ window.addEventListener('click',e=>{
 function activePolicy(p:PolicyProject):boolean{return p.status==='active'||p.status==='paused';}
 function policyProjectLock(c:Country,kind:PolicyKind):string|null {
  ensurePeriodState(G);
- if(G.policyProjects.some(p=>p.c===c.id&&p.kind===kind&&activePolicy(p)))return 'Bu program zaten sürüyor. Takvimini aşağıdan incele.';
+ const running=G.policyProjects.find(p=>p.c===c.id&&p.kind===kind&&activePolicy(p));
+ if(running)return running.status==='paused'?'Ödenek bekliyor':'Program sürüyor';
  const key=kind==='education'?'edu':'infra';
  if(crs(c).every(r=>r[key]>=100))return 'Bütün bölgeler en yüksek seviyede.';
  return null;
@@ -101,7 +102,7 @@ function policyProjectStep():void {
 }
 const investmentWorld=worldStep;worldStep=function(){measurePeriodPhase('Diğer ekonomik, toplumsal ve güvenlik gelişmeleri',investmentWorld);policyProjectStep();};
 const investmentOperations=operationsStep;operationsStep=function(){measurePeriodPhase('Harekâtlar ve dış politika',investmentOperations);};
-const investmentUnrest=unrestStep;unrestStep=function(){measurePeriodPhase('Protestolar ve yerel gerilim',investmentUnrest);};
+const investmentUnrest=unrestStep;unrestStep=function(){measurePeriodPhase('Yerel gelişmeler ve beklenmedik olaylar',investmentUnrest);};
 
 const investmentDoAct=doAct;doAct=function(id:string):void {
  const kind=keysOf(POLICY_PROGRAMS).find(k=>POLICY_PROGRAMS[k].action===id),c=leads(me());
@@ -112,7 +113,7 @@ const investmentDoAct=doAct;doAct=function(id:string):void {
 function policyProjectsPanel():string {
  ensurePeriodState(G);const c=cOf(me()),projects=G.policyProjects.filter(p=>p.c===c.id).slice(-8).reverse();if(!projects.length)return '';
  const key='devlet:policy-projects';
- return `<details class="pn advanced-panel policy-projects" data-advanced="${key}" ${advancedOpen.has(key)?'open':''}><summary>Yatırım takvimi · ${projects.filter(activePolicy).length} program</summary>${projects.map(p=>{const d=POLICY_PROGRAMS[p.kind];return `<section class="policy-project"><div class="toprow"><b>${d.title}</b><span>${p.progress}/${d.duration}</span></div><div class="meter"><i style="width:${p.progress/d.duration*100}%"></i></div><p class="sub">${p.status==='paused'?'Ödenek bekliyor':p.status==='completed'?'Tamamlandı':p.status==='cancelled'?'Durduruldu':'Sürüyor'} · Harcanan ${p.paid} hazine${activePolicy(p)?` · Kalan yükümlülük ${(d.duration-p.progress)*d.upkeep} hazine`:''}</p>${activePolicy(p)&&c.leader===G.pid?`<button class="chip" data-policy-cancel="${p.id}">Programı durdur</button>`:''}</section>`;}).join('')}</details>`;
+ return `<details class="pn advanced-panel policy-projects" data-advanced="${key}" ${advancedOpen.has(key)?'open':''}><summary>Yatırım takvimi · ${projects.some(activePolicy)?projects.filter(activePolicy).length+' sürüyor':'Arşiv'}</summary>${projects.map(p=>{const d=POLICY_PROGRAMS[p.kind];return `<section class="policy-project"><div class="toprow"><b>${d.title}</b><span>${p.progress}/${d.duration}</span></div><div class="meter"><i style="width:${p.progress/d.duration*100}%"></i></div><p class="sub">${p.status==='paused'?'Ödenek bekliyor':p.status==='completed'?'Tamamlandı':p.status==='cancelled'?'Durduruldu':'Sürüyor'} · Harcanan ${p.paid} hazine${activePolicy(p)?` · Kalan yükümlülük ${(d.duration-p.progress)*d.upkeep} hazine`:''}</p>${activePolicy(p)&&c.leader===G.pid?`<button class="chip" data-policy-cancel="${p.id}">Programı durdur</button>`:''}</section>`;}).join('')}</details>`;
 }
 const investmentState=tabState;tabState=()=>investmentState()+policyProjectsPanel();
 const investmentModal=modal;modal=function():string {

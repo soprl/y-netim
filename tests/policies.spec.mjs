@@ -9,7 +9,7 @@ test.beforeEach(async({page})=>{
   await page.getByRole('button',{name:'Öğreticiyi kapat',exact:true}).click();
   await page.evaluate(()=>{
     const c=cOf(me());c.T=300;c.appr=40;c.stab=60;c.electionDue=100;
-    me().age=30;me().health=100;G.wars=[];
+    me().age=30;me().health=100;G.wars=[];G.discoveries=['cat','radio','tea'];
     for(const country of G.cs)for(const key of Object.keys(country.rel))country.rel[key]=50;
     for(const r of crs(c)){r.edu=40;r.infra=40;r.wealth=50;r.sup=20;r.unemployment=15;}
     updEcon(c);G.periodBaseline={c:c.id,turn:G.turn,metrics:countryMetrics(c)};G.periodEffects=[];
@@ -116,6 +116,16 @@ test('investment obligations continue after a change of government',async({page}
   expect(s).toEqual({progress:1,treasury:254});
 });
 
+test('active commitments keep daily decisions within small and landscape screens',async({page})=>{
+  await launch(page);await launch(page,'infrastructure');
+  for(const [width,height] of [[320,568],[360,640],[390,844],[844,390]]){
+    await page.setViewportSize({width,height});
+    const layout=await page.evaluate(()=>({daily:document.querySelector('.daily-decisions').getBoundingClientRect().toJSON(),main:document.querySelector('main').getBoundingClientRect().toJSON(),body:document.body.scrollWidth}));
+    expect(layout.daily.bottom).toBeLessThanOrEqual(layout.main.bottom);
+    expect(layout.body).toBe(width);
+  }
+});
+
 test('newspaper includes immediate decisions, tax and war effects exactly once',async({page})=>{
   await page.evaluate(()=>{G.wars=[{a:cOf(me()).id,b:G.cs.find(c=>c.id!==cOf(me()).id).id,front:0,t:0}];});
   await page.locator('[data-a="s:wel"]').click();
@@ -153,6 +163,7 @@ test('both programs progress through normal end-turn UI and appear in the newspa
   const projects=await page.evaluate(()=>G.policyProjects);
   expect(projects.every(p=>p.status==='completed')).toBe(true);
   expect(projects.map(p=>p.paid)).toEqual([58,56]);
+  await expect(page.locator('.policy-projects>summary')).toContainText('Arşiv');
   await page.getByRole('button',{name:'Gazete',exact:true}).click();
   await page.getByRole('button',{name:/Son sayıyı aç/}).click();
   await expect(page.locator('.paper-explanation')).toContainText('Ne değişti, neden?');

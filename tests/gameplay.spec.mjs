@@ -155,6 +155,15 @@ test('secondary panels remain open after an action re-renders the screen',async(
   await expect(cabinet.locator('[data-min]')).toHaveCount(4);
 });
 
+test('campaign explanations stay inside the collapsible election panel',async({page})=>{
+  await start(page);
+  await expect(page.locator('main>p')).toHaveCount(0);
+  const politics=page.locator('details').filter({has:page.locator('summary',{hasText:'Meclis ve seçimler'})});
+  await politics.locator('summary').click();
+  await expect(politics).toContainText('Bu dönem 0 kampanya');
+  await expect(politics).toContainText('Kampanya başlatmak için önce partini adlandırıp programını belirle.');
+});
+
 for(const [target,title,warning] of [['elections','Meclis ve seçimler','Seçim yaklaşıyor'],['budget','Kamu bütçesi','Hazine daralıyor']]){
   test(`${target} warning opens the relevant details directly`,async({page})=>{
     await start(page);
