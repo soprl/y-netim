@@ -16,7 +16,7 @@ const LN=['Akdoğan','Bozkurt','Çelikel','Demirci','Erdem','Güven','Karaca','K
 const EDU=['İlkokul','Lise','Üniversite','Yüksek lisans','Doktora'];
 const JOBS:Record<string,number>={'İşçi':3,'Çiftçi':3,'Öğretmen':4,'Gazeteci':4,'Esnaf':5,'Subay':5,'Mühendis':6,'Avukat':7,'Doktor':7};
 const IDEO:Record<string,string>={Liberal:'Özgürlük Partisi','Sosyal demokrat':'Halkın Emeği Partisi',Muhafazakâr:'Gelenek Partisi',Milliyetçi:'Vatan Partisi',Sosyalist:'İşçi Birliği',Çevreci:'Yeşil Yol Partisi'};
-const POS:Record<string,string>={vatandas:'Vatandaş',uye:'Hareket üyesi',hareket:'Hareket lideri',parti:'Parti lideri',belediye:'Belediye başkanı',vali:'Bölge yöneticisi',bakan:'Koalisyon ortağı',general:'General',muhalefet:'Muhalefet lideri',eski:'Eski lider',bakanNPC:'Bakan'};
+const POS:Record<string,string>={vekil:'Bağımsız milletvekili',vatandas:'Vatandaş',uye:'Hareket üyesi',hareket:'Hareket lideri',parti:'Parti lideri',belediye:'Belediye başkanı',vali:'Bölge yöneticisi',bakan:'Koalisyon ortağı',general:'General',muhalefet:'Muhalefet lideri',eski:'Eski lider',bakanNPC:'Bakan'};
 const TAXF=[0,.65,1,1.4], TAXN=['','Düşük','Orta','Yüksek'], AUTON=['Merkeze bağlı','Geniş yetkili','Özerk','Tam özerk'];
 const MINN={eko:'Ekonomi',ici:'İçişleri',sav:'Savunma',dis:'Dışişleri'};
 /* ---------- piksel harita üretimi ---------- */
@@ -107,7 +107,7 @@ let newGame = function(){
 }
 const updEcon=(c: Country)=>{const rs=crs(c),t=rs.reduce((s,r)=>s+r.pop,0)||1;c.econ=rs.reduce((s,r)=>s+r.wealth*r.pop,0)/t};
 const full=(c: Country)=>c.n+' '+REGW[c.reg];
-const ltitle=(c: Country)=>TITLE[c.reg];
+const ltitle=(c: Country)=>c.puppet?'Vali':TITLE[c.reg];
 const posName=(p: Person)=>{if(p.pos==='lider'){const c=G.cs.find(c=>c.alive&&c.leader===p.id);return c?ltitle(c):'Lider'}return POS[p.pos]||'Vatandaş'};
 function say(t: string){G.log.unshift({d:dateStr(),t});if(G.log.length>160)G.log.pop()}
 function hist(p: Person,t: string){p.hist.push({a:Math.floor(p.age),t})}
@@ -121,7 +121,7 @@ const atWar=(a: number,b: number)=>G.wars.find(w=>(w.a===a&&w.b===b)||(w.a===b&&
 const inWar=(c: Country)=>G.wars.some(w=>w.a===c.id||w.b===c.id);
 const leads=(p: Person)=>G.cs.find(c=>c.alive&&c.leader===p.id);
 function nextIn(c: Country,mod: number,rem: number){for(let i=1;i<=mod;i++)if((G.turn+i+c.off)%mod===rem)return i;return mod}
-const natElect=(c: Country)=>c.reg==='cum'||c.reg==='fed', locElect=(c: Country)=>c.reg!=='cun';
+const natElect=(c: Country)=>!c.puppet&&(c.reg==='cum'||c.reg==='fed'), locElect=(c: Country)=>c.reg!=='cun';
 /* kişi sisteme girerken destek tablosu */
 function seedSup(p: Person){const c=cOf(p);G.rs.forEach(r=>{r.sup=r.c===c.id?4:1});
  const set=(v: number)=>crs(c).forEach(r=>r.sup=v);
@@ -139,7 +139,7 @@ function becomeLeader(p: Person,c: Country,how: string){const old=P(c.leader);if
  clearOffice(p);c.leader=p.id;p.pos='lider';p.r=c.cap;p.cand=null;p.legacy+=40;
  if(natSup(p,c)<c.appr)crs(c).forEach(r=>r.sup=Math.max(r.sup,c.appr));
  hist(p,`${ltitle(c)} oldu (${how})`);say(`${p.name}, ${how} yoluyla ${full(c)} yönetimini devraldı.`)}
-function clearOffice(p: Person){G.rs.forEach(r=>{if(r.gov===p.id)r.gov=mkP({r:r.id,pos:'vali'}).id;if(r.mayor===p.id)r.mayor=mkP({r:r.id,pos:'belediye'}).id})}
+function clearOffice(p: Person){if(p.mpCountry!=null){const c=G.cs[p.mpCountry];if(c)c.independentSeats=(c.independentSeats||[]).filter(s=>s.person!==p.id);delete p.mpCountry;}G.rs.forEach(r=>{if(r.gov===p.id)r.gov=mkP({r:r.id,pos:'vali'}).id;if(r.mayor===p.id)r.mayor=mkP({r:r.id,pos:'belediye'}).id})}
 let makeCountry = function(r: Region,leaderId: number,parent: number){G.extra++;const id=G.cs.length,c={id,n:r.n,reg:'cum',col:EXTRA[(G.extra-1)%EXTRA.length],tax:2,T:30,econ:r.wealth,stab:45,appr:55,army:25,rel:{},allies:[],trade:[],off:rint(0,7),alive:true,cap:r.id,min:{}} as Country;
  G.cs.push(c);c.leader=leaderId;c.gen=mkP({r:r.id,pos:'general',job:'Subay'}).id;const o=mkP({r:r.id,pos:'muhalefet'});o.party=IDEO[o.ideo];c.opp=o.id;
  for(const k of keysOf(MINN))c.min[k]=mkP({r:r.id,pos:'bakanNPC'}).id;
@@ -172,13 +172,13 @@ let worldStep = function(){
   recordPeriodEffect(c.id,'Yönetim desteğinin 0–100 sınırı',{appr:c.appr-rawApproval});
   const st=56+(c.appr-50)*.45+min('ici').lead/14-(war?10:0)-(c.reg==='cun'?5:0)-(c.T<0?12:0);c.stab=cl(c.stab+(st-c.stab)*.13+rnd(-2.2,2.2));
   c.army=cl(c.army+(min('sav').lead-50)/120-(war?1.4:0)+rnd(-.3,.3));
-  if(c.id!==(mine&&mine.id)){
+  if(c.id!==(mine&&mine.id)&&!c.puppet){
    if(c.T<20&&c.tax<3&&chance(30))c.tax++;else if(c.T>170&&c.tax>1&&chance(25))c.tax--;
    if(c.T>90&&chance(35)){c.T-=35;c.army=cl(c.army+5)}
    if(c.T>70&&chance(30)){c.T-=30;const r=pick(rs);r.infra=cl(r.infra+6);r.edu=cl(r.edu+3)}
   }
  });
- alive().forEach(c=>{if(mine&&c.id===mine.id)return;
+ alive().forEach(c=>{if(c.puppet||mine&&c.id===mine.id)return;
   const n=alive().filter(o=>o.id!==c.id&&neighborGraph.get(c.id).has(o.id));if(!n.length)return;const o=pick(n);
   c.rel[o.id]=o.rel[c.id]=cl((c.rel[o.id]||0)+rnd(-7,6),-100,100);
   if(c.rel[o.id]<-35&&!atWar(c.id,o.id)&&G.wars.length<2&&c.army>o.army+2&&chance(c.reg==='cun'?30:c.reg==='kra'?18:10))declareWar(c,o);
@@ -273,7 +273,7 @@ function drawEvent(){const p=me();
 }
 /* ---------- dönem sonu ---------- */
 let endTurn = function(){if(G.q.length||ui.sheet)return;const p=me();G.turn++;
- const off={belediye:3,vali:5,bakan:6,lider:10,general:5,muhalefet:2}[p.pos]||0;p.money+=off;
+ const off={belediye:3,vali:5,vekil:3,bakan:6,lider:10,general:5,muhalefet:2}[p.pos]||0;p.money+=off;
  worldStep();operationsStep();unrestStep();syncPlayer();
  p.fame=cl(p.fame-.4);if(p.age>50)p.health=cl(p.health-.5);p.health=cl(p.health+(p.age<50?.5:0));
  if(p.pos==='lider'){const c=leads(p);if(c)crs(c).forEach(r=>r.sup=r.sup+(c.appr-r.sup)*.25)}
@@ -343,7 +343,7 @@ function stateA():Action[]{const p=me(),c=leads(p);if(!c)return[];const out=[],r
  b('s:wel','Sosyal destek paketi','Yönetim desteği +9.',30,()=>{c.appr=cl(c.appr+9);T('Yönetim desteği +9')});
  if(natElect(c))out.push(A('s:early','Erken seçim','Bir sonraki dönem seçim yapılır.',{lock:G.turn<4?'Henüz erken':null,run(){c.off=(8-(G.turn+1)%8)%8;T('Seçim kararı alındı')}}));
  return out;}
-function sheetA():Action[]{const p=me(),c=leads(p),out:Action[]=[];if(!c)return out;
+let sheetA = function():Action[]{const p=me(),c=leads(p),out:Action[]=[];if(!c)return out;
  alive().filter(o=>o.id!==c.id).forEach(o=>{const near=cAdj(c,o),w=atWar(c.id,o.id),rel=c.rel[o.id]||0;
   out.push(A('d:vis:'+o.id,'Resmî ziyaret','İlişki +12',{run(){c.rel[o.id]=o.rel[c.id]=cl(rel+12+P(c.min.dis).lead/20,-100,100);T('İlişki arttı')}}));
   out.push(A('d:tra:'+o.id,'Ticaret anlaşması','Her dönem hazineye +4',{lock:rel<15?'İlişki 15 gerekli':c.trade.includes(o.id)?'Anlaşma var':null,run(){c.trade.push(o.id);o.trade.push(c.id);T('Anlaşma imzalandı')}}));
@@ -556,3 +556,4 @@ window.claude?.hot?.snapshot?.(()=>({g:G,view:ui.view}));
 const start=(d: {g?:GameState;view?:string})=>{if(d&&d.g){G=d.g;ui.view=d.view||'game'}boot()};
 
 document.addEventListener('change',e=>{if(eventElement(e).id==='country-jump'){G.sel=+eventElement<HTMLInputElement | HTMLSelectElement>(e).value;ui.mapCountry=G.rs[G.sel].c;render()}});
+
