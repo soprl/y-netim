@@ -13,7 +13,7 @@ interface Person {
  id: number; name: string; age: number; edu: number; job: string; money: number; ideo: string;
  speech: number; lead: number; rep: number; fame: number; org: number; health: number; r: number;
  pos: string; party: string | null; hist: HistoryEntry[]; alive: boolean; seed: number; cand: string | null;
- traits?: TraitId[]; bond?: CharacterBond; lastMeeting?:number; ai?: boolean; jail: number; legacy: number; cool: Record<string, number>; nameCulture?: string; customName?: boolean;
+ independentCountry?:number;independentRegion?:number;mpCountry?:number;lastParliamentTurn?:number; rallyVisits?:Record<string,number>;traits?: TraitId[]; bond?: CharacterBond; lastMeeting?:number; ai?: boolean; jail: number; legacy: number; cool: Record<string, number>; nameCulture?: string; customName?: boolean;
 }
 interface Region {
  id: number; n: string; c: number; x: number; y: number; pop: number; wealth: number; infra: number;
@@ -29,7 +29,10 @@ interface Party {
 }
 interface ElectionResultParty { name: string; share: number; seats: number; candidate: number }
 interface ElectionResult { turn: number; parties: ElectionResultParty[] }
+interface IndependentCandidacy {person:number;region:number;campaign:number}
+interface IndependentSeat {person:number;region:number}
 interface Country {
+ puppet?:boolean;lastDirectiveTurn?:number; independentCandidates?:IndependentCandidacy[];independentSeats?:IndependentSeat[];
  id: number; n: string; reg: Regime; col: string; tax: number; T: number; econ: number; stab: number;
  appr: number; army: number; rel: Record<number, number>; allies: number[]; trade: number[]; off: number;
  alive: boolean; cap: number; min: Record<MinisterKey, number>; leader: number; gen: number; opp: number;
@@ -81,7 +84,7 @@ interface NewCharacter { name?: string; age?: number | string; edu?: number; job
 interface Sheet { t: string; kind?: OperationKind; r?: number; id?: number | string; k?: MinisterKey; cost?: number }
 interface Projection { sx: number; sy: number; sw: number; sh: number; dx: number; dy: number; dw: number; dh: number }
 interface UIState {
- view: string; sheet: Sheet | null; flash: string | null; cnew: NewCharacter; pick: string;
+ movementFlagDraft?:MovementFlag;view: string; sheet: Sheet | null; flash: string | null; cnew: NewCharacter; pick: string;
  cand?: { name: string; lead: number; seed: number }[]; applyingUpdate?: boolean; cinemaPreview?: QueuedEvent | null;
  electionPreview?: QueuedEvent | null; importError?: string | null; loadError?: string | null; mapCountry?: number | null;
  mapProjection?: Projection | null; notice?: string | null; partyDraft?: PartyDraft | null; partyError?: string | null;
@@ -118,7 +121,8 @@ function isMinisterKey(value: string): value is MinisterKey { return ['eko','ici
 
 function keysOf<T extends object>(value:T):(keyof T)[]{return Object.keys(value) as (keyof T)[];}
 
-interface ArmedMovement { id:string; founder:number; name:string; home:number; baseRegion:number; strength:number; support:number; controlled:number[]; country:number|null; active:boolean; started:number }
+interface MovementFlag {primary:string;secondary:string;pattern:'solid'|'horizontal'|'vertical';symbol:'star'|'circle'|'diamond'}
+interface ArmedMovement {flag?:MovementFlag;equipment?:number;supplies?:number;lastEquipmentTurn?:number;lastSuppliesTurn?:number;lastSponsorTurn?:number; id:string; founder:number; name:string; home:number; baseRegion:number; strength:number; support:number; controlled:number[]; country:number|null; active:boolean; started:number }
 interface ControlCampaign { lastRoll?:number; lastReport?:string; movement:string; r:number; originalOwner:number; age:number; progress:number }
 
 type TraitId='loyal'|'ambitious'|'pragmatic'|'cautious'|'charismatic'|'idealistic'|'stubborn'|'mediator';
@@ -128,3 +132,4 @@ interface DecisionReport {id:string;turn:number;c:number;category:string;title:s
 interface BattleAssessment {attack:number;defense:number;base:number;supply:number;fronts:number;factors:DecisionFactor[]}
 interface ControlAssessment {power:number;base:number;factors:DecisionFactor[]}
 interface PriorityItem {level:'urgent'|'important'|'info';title:string;detail:string;target:string;r?:number}
+
