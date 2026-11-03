@@ -1,6 +1,6 @@
 {
   "name": "ya-yonet-avrupa",
-  "version": "2.5.2",
+  "version": "2.6.0",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -8,7 +8,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json",
-    "test": "npm run check && npm run build && playwright test"
+    "test": "npm run check && npm run build && npm run test:model && playwright test",
+    "test:model": "node --test tests/model-features.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
