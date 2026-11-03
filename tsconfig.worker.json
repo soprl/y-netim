@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "none", "lib": ["ES2022", "WebWorker"], "types": [],
+    "outFile": "dist/sw.js", "strict": true, "noEmitOnError": true,
+    "forceConsistentCasingInFileNames": true, "skipLibCheck": false
+  },
+  "files": ["src/service-worker.ts"]
+}

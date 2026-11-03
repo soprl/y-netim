@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "none",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "outFile": "dist/assets/game.js",
+    "noEmitOnError": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": false,
+    "types": [],
+    "removeComments": false
+  },
+  "files": [
+    "src/model.ts",
+    "src/map-data.ts",
+    "src/core.ts",
+    "src/expansion.ts",
+    "src/cultures.ts",
+    "src/cinematics.ts",
+    "src/country-map.ts",
+    "src/world-life.ts",
+    "src/parties.ts",
+    "src/movements.ts",
+    "src/polish.ts",
+    "src/boot.ts"
+  ]
+}

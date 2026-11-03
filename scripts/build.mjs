@@ -1,0 +1,14 @@
+import { execFileSync } from 'node:child_process';
+import { cp, mkdir, readFile, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const out=path.join(root,'dist');
+await rm(out,{recursive:true,force:true});
+await mkdir(path.join(out,'assets'),{recursive:true});
+const tsc=path.join(root,'node_modules/typescript/bin/tsc');
+for(const config of ['tsconfig.json','tsconfig.worker.json'])execFileSync(process.execPath,[tsc,'-p',config],{cwd:root,stdio:'inherit'});
+for(const file of ['index.html','expansion.css','world-life.css','manifest.webmanifest','icons','assets/city-atlas.webp'])await cp(path.join(root,file),path.join(out,file),{recursive:true});
+const html=await readFile(path.join(out,'index.html'),'utf8');
+if(!html.includes('assets/game.js')||html.includes('<script>'))throw Error('Entry HTML must load only the compiled game.');
+console.log('Built checked TypeScript application and service worker into dist/.');
