@@ -46,7 +46,7 @@ let unrestStep = function(){G.unrest ||= [];G.discoveries ||= [];
  G.unrest=G.unrest.filter(u=>{if(u.power<=0)return false;const r=G.rs[u.r],c=G.cs[r.c];u.age++;u.power=cl(u.power+Math.max(0,45-c.stab)*.15-4);r.wealth=cl(r.wealth-2);c.stab=cl(c.stab-2);if(u.age>=4||u.power<=0){say(`${r.n}: sokak hareketi sona erdi.`);return false}return true});
  const c=cOf(me()),risk=unrestRisk(c);if(!G.unrest.some(u=>G.rs[u.r].c===c.id)&&chance(risk))startUprising(c,pick(crs(c)));
  const others=alive().filter(k=>k.id!==c.id&&!G.unrest.some(u=>G.rs[u.r].c===k.id));if(others.length){const k=pick(others);if(chance(unrestRisk(k)))startUprising(k,pick(crs(k)))}
- if(!G.q.length&&chance(7)){const secrets=[['cat','Mührün gerçek sahibi','Saray kedisi mührün üzerine uyudu. Toplantı, mama gelene kadar ertelendi.'],['radio','Gece yarısı frekansı','Eski radyodan bir ses geldi: “Bir dönem daha...” Arşivde unutulmuş bir dayanışma ağı keşfedildi.'],['tea','Çay diplomasisi','Zirvede son bardak çay paylaşıldı. En sert rakipler bile bir anlığına gülümsedi.']].filter(s=>!G.discoveries.includes(s[0]));if(secrets.length){const s=pick(secrets);G.discoveries.push(s[0]);c.appr=cl(c.appr+3);G.q.push({id:'info',k:'Gizli olay · '+G.discoveries.length+'/3',title:s[1],text:s[2]+' Halk desteği +3.',secret:true});say('Gizli olay keşfedildi: '+s[1])}}
+ if(!G.q.length&&chance(7)){const secrets=[['cat','Mührün gerçek sahibi','Saray kedisi mührün üzerine uyudu. Toplantı, mama gelene kadar ertelendi.'],['radio','Gece yarısı frekansı','Eski radyodan bir ses geldi: “Bir dönem daha...” Arşivde unutulmuş bir dayanışma ağı keşfedildi.'],['tea','Çay diplomasisi','Zirvede son bardak çay paylaşıldı. En sert rakipler bile bir anlığına gülümsedi.']].filter(s=>!G.discoveries.includes(s[0]));if(secrets.length){const s=pick(secrets);G.discoveries.push(s[0]);c.appr=cl(c.appr+3);G.q.push({id:'info',k:'Gizli olay · '+G.discoveries.length+'/3',title:s[1],text:s[2]+' Yönetim desteği +3.',secret:true});say('Gizli olay keşfedildi: '+s[1])}}
 }
 let uprisingModal = function(q: QueuedEvent){const r=G.rs[q.r],c=G.cs[r.c],leader=c.leader===G.pid;return `<div class="modalbg"><div class="modal band uprising" role="dialog" aria-modal="true" aria-label="Ayaklanma"><div class="event-scene" aria-hidden="true"><span>⚑</span><span>⚑</span><span>⚑</span><i></i></div><div class="kick">SON DAKİKA · ${esc(c.n)}</div><h2>${esc(r.n)} meydanları doldu</h2><p>İyi göstergeler huzuru garanti etmiyor. Yerel talepler ülke çapında bir harekete dönüşebilir. Kararın sonraki dönemleri etkileyecek.</p><div class="acts">${(leader?[
  ['Temsilcilerle görüş','12 hazine; sadakat +15, istikrar +6'],['Acil destek paketi','25 hazine; zenginlik +8, sadakat +12'],['Güç kullan','İstikrar +4; sadakat −18, itibar −10. Hareket büyüyebilir.']]:[['Dayanışma örgütle','5 para; itibar +6, örgüt +4'],['Arabuluculuk yap','İtibar +3; sadakat +8'],['Uzak dur','Sağlığını korursun; hareket sürer']]).map((v,i)=>`<button class="big" data-q="${i}" ${leader&&i<2&&c.T<(i===0?12:25)||!leader&&i===0&&me().money<5?'disabled':''}><b>${v[0]}</b><span>${v[1]}</span></button>`).join('')}</div></div></div>`}
@@ -133,7 +133,7 @@ function seedSup(p: Person){const c=cOf(p);G.rs.forEach(r=>{r.sup=r.c===c.id?4:1
 let TOAST:string[]=[];
 const LBL:Partial<Record<NumericPersonKey,string>>={fame:'Tanınırlık',rep:'İtibar',org:'Örgüt',money:'Para',speech:'Hitabet',lead:'Liderlik',health:'Sağlık'};
 function D(o:Partial<Record<NumericPersonKey,number>>){const p=me();for(const k of Object.keys(o) as NumericPersonKey[]){if(k==='money')p.money=Math.max(0,p.money+o[k]);else p[k]=cl(p[k]+o[k]);const v=r0(o[k]);if(v)TOAST.push(`${LBL[k]} ${v>0?'+':''}${v}`)}}
-function S(rs: Region[],n: number){rs.forEach(r=>r.sup=cl(r.sup+n));TOAST.push(`Destek ${n>0?'+':''}${r0(n)}`)}
+function S(rs: Region[],n: number){rs.forEach(r=>r.sup=cl(r.sup+n));TOAST.push(`Bölgedeki kişisel destek ${n>0?'+':''}${r0(n)}`)}
 const T=(t: string)=>TOAST.push(t);
 function becomeLeader(p: Person,c: Country,how: string){const old=P(c.leader);if(old&&old.id!==p.id)old.pos='eski';
  clearOffice(p);c.leader=p.id;p.pos='lider';p.r=c.cap;p.cand=null;p.legacy+=40;
@@ -229,7 +229,7 @@ function playerVote(kind: string,c: Country,inc: boolean){const p=me(),r=G.rs[p.
 const EV:Record<string,EventCard>={
  e_koalisyon:{k:'Genel seçim',t:'Koalisyon teklifi',x:p=>`Seçimi kazanamadın ama iktidar senin oylarına muhtaç. Hükûmete katılabilirsin.`,c:[
   {t:'Hükûmete katıl',n:'Koalisyon ortağı olursun',f(p){clearOffice(p);p.pos='bakan';p.legacy+=12;hist(p,'Koalisyonla hükûmete girdi');D({fame:6});S(crs(cOf(p)),3)}},
-  {t:'Muhalefette kal',n:'Halk desteği artar',f(p){p.pos='muhalefet';cOf(p).opp=p.id;D({rep:5});S(crs(cOf(p)),4)}}]},
+  {t:'Muhalefette kal',n:'Kişisel desteğin artar',f(p){p.pos='muhalefet';cOf(p).opp=p.id;D({rep:5});S(crs(cOf(p)),4)}}]},
  e_istifa:{k:'Anayasal kriz',t:'Yönetim istifa etti',x:p=>`${cOf(p).n} yönetimi krizi aşamadı ve çekildi. Hükûmeti kurma görevi sana teklif ediliyor.`,c:[
   {t:'Görevi kabul et',n:'Devletin başına geçersin',f(p){const c=cOf(p);if(c.reg==='kra'||c.reg==='cun')c.reg='cum';becomeLeader(p,c,'anayasal kriz');G.tab='devlet'}},
   {t:'Reddet',n:'İtibarın artar',f(p){D({rep:6})}}]},
@@ -254,9 +254,9 @@ const EV:Record<string,EventCard>={
  e_komplo:{k:'İstihbarat',t:'Generaller arasında komplo söylentisi',x:p=>`Raporlara göre ${P(leads(p).gen).name} sana karşı örgütleniyor.`,cond:p=>p.pos==='lider',c:[
   {t:'Generali görevden al',n:'Ordu zayıflar, tehdit biter',f(p){const c=leads(p);c.gen=mkP({r:c.cap,pos:'general',job:'Subay'}).id;c.army=cl(c.army-6);T('Yeni general atandı')}},{t:'Ödenekle gönlünü al',n:'-25 hazine, ordu güçlenir',f(p){const c=leads(p);c.T-=25;c.army=cl(c.army+4);T('Hazine -25')}}]},
  e_kriz:{k:'Ekonomi',t:'Piyasalarda panik',x:()=>'Yatırımcılar çekiliyor, fiyatlar hızla yükseliyor.',cond:p=>p.pos==='lider',c:[
-  {t:'Kemer sık',n:'Halk desteği düşer, hazine korunur',f(p){const c=leads(p);c.appr=cl(c.appr-8);c.T+=25;T('Hazine +25')}},{t:'Para bas',n:'Bugün rahatlar, zenginlik düşer',f(p){const c=leads(p);c.appr=cl(c.appr+4);crs(c).forEach(r=>r.wealth=cl(r.wealth-3));T('Zenginlik düştü')}}]},
+  {t:'Kemer sık',n:'Yönetim desteği düşer, hazine korunur',f(p){const c=leads(p);c.appr=cl(c.appr-8);c.T+=25;T('Hazine +25')}},{t:'Para bas',n:'Bugün rahatlar, zenginlik düşer',f(p){const c=leads(p);c.appr=cl(c.appr+4);crs(c).forEach(r=>r.wealth=cl(r.wealth-3));T('Zenginlik düştü')}}]},
  e_protesto:{k:'Sokaklar',t:'Başkentte büyük gösteriler',x:()=>'On binlerce kişi meydanda. Taleplerini duymanı istiyorlar.',cond:p=>p.pos==='lider',c:[
-  {t:'Temsilcileri kabul et',n:'Destek artar, istikrar düşer',f(p){const c=leads(p);c.appr=cl(c.appr+7);c.stab=cl(c.stab-3);T('Halk desteği +7')}},{t:'Polisle dağıt',n:'İstikrar artar, destek düşer',f(p){const c=leads(p);c.stab=cl(c.stab+5);c.appr=cl(c.appr-10);D({rep:-6})}}]},
+  {t:'Temsilcileri kabul et',n:'Yönetim desteği artar, istikrar düşer',f(p){const c=leads(p);c.appr=cl(c.appr+7);c.stab=cl(c.stab-3);T('Yönetim desteği +7')}},{t:'Polisle dağıt',n:'İstikrar artar, yönetim desteği düşer',f(p){const c=leads(p);c.stab=cl(c.stab+5);c.appr=cl(c.appr-10);D({rep:-6})}}]},
  e_sinir:{k:'Sınır',t:'Komşu devletle sınır gerginliği',x:p=>`Sınırda askerî devriyeler karşı karşıya geldi.`,cond:p=>p.pos==='lider'&&alive().some(o=>o.id!==leads(p).id&&cAdj(leads(p),o)),c:[
   {t:'Diplomatik çözüm',n:'İlişkiler korunur',f(p){const c=leads(p);alive().filter(o=>o.id!==c.id&&cAdj(c,o)).forEach(o=>{c.rel[o.id]=o.rel[c.id]=cl((c.rel[o.id]||0)+5,-100,100)});T('Komşu ilişkileri +5')}},{t:'Güç göster',n:'Ordu moral bulur, ilişkiler bozulur',f(p){const c=leads(p);c.army=cl(c.army+4);alive().filter(o=>o.id!==c.id&&cAdj(c,o)).forEach(o=>{c.rel[o.id]=o.rel[c.id]=cl((c.rel[o.id]||0)-10,-100,100)});T('Ordu +4')}}]}
 };
@@ -307,7 +307,7 @@ let charA = function():Action[]{const p=me(),c=cOf(p),r=G.rs[p.r],out=[];const r
  if(natElect(c)&&!['vali','lider'].includes(p.pos)&&p.cand!=='vali')out.push(A('c:vali',`${r.n} bölge seçimine gir`,`Seçime ${elect('vali')} dönem var.`,{lock:p.fame<30?'Tanınırlık 30 gerekli':r.sup<30?'Bölge desteği 30 gerekli':null,run(){p.cand='vali';T('Aday oldun')}}));
  if(!natElect(c)&&!['vali','lider'].includes(p.pos))out.push(A('appoint','Yöneticiliğe atanma iste','Bu rejimde bölgeleri saray veya konsey atar.',{lock:p.rep<50?'İtibar 50 gerekli':p.cool.app?`${p.cool.app} dönem sonra`:null,tag:`%${r0(cl(p.rep*.6+p.lead*.2-5,5,80))}`,run(){p.cool.app=4;if(chance(cl(p.rep*.6+p.lead*.2-5,5,80))){clearOffice(p);r.gov=p.id;p.pos='vali';p.legacy+=15;hist(p,`${r.n} bölge yöneticiliğine atandı`);T('Atandın')}else T('Başvurun reddedildi')}}));
  if(natElect(c)&&p.pos!=='lider'&&p.cand!=='ulusal')out.push(A('c:ulusal','Genel seçimde aday ol',`Seçime ${elect('ulusal')} dönem var.`,{lock:!p.party?'Parti gerekli':p.fame<40?'Tanınırlık 40 gerekli':null,run(){p.cand='ulusal';T('Aday oldun')}}));
- if(natElect(c)&&p.party&&p.pos!=='lider')out.push(A('gensoru','Parlamentoda güven oylaması','Yönetimi meclis çoğunluğuyla düşür.',{lock:natSup(p)<40?'Ülke desteği 40 gerekli':c.appr>=45?'Yönetim desteği 45 altına inmeli':null,tag:`%${r0(cl(natSup(p)-c.appr/2+p.lead/4,5,85))}`,run(){p.cool.gen=1;if(chance(cl(natSup(p)-c.appr/2+p.lead/4,5,85))){becomeLeader(p,c,'meclis güvenoyu');G.tab='devlet';T('Hükûmeti devraldın')}else{D({rep:-4});T('Oylama kaybedildi')}}}));
+ if(natElect(c)&&p.party&&p.pos!=='lider')out.push(A('gensoru','Parlamentoda güven oylaması','Yönetimi meclis çoğunluğuyla düşür.',{lock:natSup(p)<40?'Kişisel destek 40 gerekli':c.appr>=45?'Yönetim desteği 45 altına inmeli':null,tag:`%${r0(cl(natSup(p)-c.appr/2+p.lead/4,5,85))}`,run(){p.cool.gen=1;if(chance(cl(natSup(p)-c.appr/2+p.lead/4,5,85))){becomeLeader(p,c,'meclis güvenoyu');G.tab='devlet';T('Hükûmeti devraldın')}else{D({rep:-4});T('Oylama kaybedildi')}}}));
  if(p.pos==='bakan')out.push(A('devral','Hükûmeti devral','Koalisyon krizinde başbakanlığı talep et.',{lock:c.stab>=35?'İstikrar 35 altına inmeli':null,run(){becomeLeader(p,c,'hükûmet krizi');G.tab='devlet'}}));
  if(p.pos!=='lider'){const pw=p.pos==='general'?35+p.lead*.5-c.stab*.45:p.org>=60?natSup(p)*.5+p.org*.25-c.stab*.5+10:0,ch=r0(cl(pw,5,85));
   out.push(A('coup',p.pos==='general'?'Yönetime el koy':'Devrim başlat','Başarısız olursan hapse girersin.',{lock:p.pos==='general'?null:(p.org<60?'Örgüt 60 gerekli':p.fame<50?'Tanınırlık 50 gerekli':null),tag:`%${ch}`,run(){if(chance(ch)){c.stab=cl(c.stab-18);const pre=p.pos==='general';if(pre)c.gen=mkP({r:c.cap,pos:'general',job:'Subay'}).id;c.reg=pre?'cun':'cum';becomeLeader(p,c,pre?'askerî müdahale':'devrim');G.tab='devlet';T('İktidar senin')}else{p.jail=4;D({org:-15,fame:6,rep:-4});hist(p,'İktidar girişimi başarısız oldu, hapse girdi');say(`${p.name} başarısız bir girişim sonrası hapsedildi.`);T('Hapse girdin')}}}));}
@@ -333,10 +333,10 @@ function regionA():Action[]{const p=me(),r=G.rs[p.r],c=cOf(p),out=[];
  return out;}
 function stateA():Action[]{const p=me(),c=leads(p);if(!c)return[];const out=[],rs=crs(c);
  const b=(id:string,t:string,d:string,cost:number,f:()=>void)=>out.push(A(id,t,d,{cost3:cost,run(){c.T-=cost;f()}}));
- b('s:army','Orduyu güçlendir','Savunma ve caydırıcılık.',40,()=>{c.army=cl(c.army+7);T('Ordu +7')});
- b('s:edu','Eğitim seferberliği','Tüm bölgelerde eğitim yükselir.',40,()=>{rs.forEach(r=>r.edu=cl(r.edu+4));T('Eğitim +4')});
- b('s:inf','Altyapı programı','Yollar ve enerji hatları.',40,()=>{rs.forEach(r=>r.infra=cl(r.infra+4));T('Altyapı +4')});
- b('s:wel','Sosyal destek paketi','Halk desteği kısa sürede yükselir.',30,()=>{c.appr=cl(c.appr+9);T('Halk desteği +9')});
+ b('s:army','Orduyu güçlendir','Ordu +7.',40,()=>{c.army=cl(c.army+7);T('Ordu +7')});
+ b('s:edu','Eğitim seferberliği','Tüm bölgelerde eğitim +4.',40,()=>{rs.forEach(r=>r.edu=cl(r.edu+4));T('Eğitim +4')});
+ b('s:inf','Altyapı programı','Tüm bölgelerde altyapı +4.',40,()=>{rs.forEach(r=>r.infra=cl(r.infra+4));T('Altyapı +4')});
+ b('s:wel','Sosyal destek paketi','Yönetim desteği +9.',30,()=>{c.appr=cl(c.appr+9);T('Yönetim desteği +9')});
  if(natElect(c))out.push(A('s:early','Erken seçim','Bir sonraki dönem seçim yapılır.',{lock:G.turn<4?'Henüz erken':null,run(){c.off=(8-(G.turn+1)%8)%8;T('Seçim kararı alındı')}}));
  return out;}
 function sheetA():Action[]{const p=me(),c=leads(p),out:Action[]=[];if(!c)return out;
@@ -412,12 +412,12 @@ function actBtn(a: Action){const w=can(a),tag=a.tag||(a.cost?`${a.cost} para`:a.
 const list=(a: Action[])=>`<div class="acts">${a.map(actBtn).join('')}</div>`;
 function header(){const p=me(),c=cOf(p),m=leads(p);return `<header class="top band"><div class="toprow"><div class="date">${dateStr()}</div><button class="chip" data-sound="1" aria-pressed="${soundOn}">Ses: ${soundOn?'Açık':'Kapalı'}</button><div class="pips" aria-label="Kalan eylem: ${G.ap}"><span>Eylem</span>${[...Array(p.pos==='lider'?3:2)].map((_,i)=>`<i class="pip ${i<G.ap?'':'off'}"></i>`).join('')}</div></div>
  <div class="who">${esc(p.name)}, ${Math.floor(p.age)} · ${esc(posName(p))} · ${esc(c.n)}</div>
- <div class="stats"><span>Para <b>${r0(p.money)}</b></span><span>Destek <b>%${r0(natSup(p))}</b></span>${m?`<span>Hazine <b>${r0(m.T)}</b></span>`:`<span>Tanınırlık <b>${r0(p.fame)}</b></span>`}${p.jail?`<span class="warn">Hapis: ${p.jail} dönem</span>`:''}${p.cand?`<span class="ok">Adaysın</span>`:''}</div></header>`}
+ <div class="stats"><span>Para <b>${r0(p.money)}</b></span><span>Kişisel destek <b>%${r0(natSup(p))}</b></span>${m?`<span>Hazine <b>${r0(m.T)}</b></span>`:`<span>Tanınırlık <b>${r0(p.fame)}</b></span>`}${p.jail?`<span class="warn">Hapis: ${p.jail} dönem</span>`:''}${p.cand?`<span class="ok">Adaysın</span>`:''}</div></header>`}
 let tabChar = function(){const p=me(),acts=charA();const open=acts.filter(a=>!a.lock),closed=acts.filter(a=>a.lock);
- return `<section class="pn"><div class="row"><canvas class="pt" data-s="${p.seed}" style="width:72px;height:72px;flex:none"></canvas><div><h2>${esc(p.name)}</h2><div class="sub">${esc(posName(p))}${p.party?' · '+esc(p.party):''}</div><div class="sub">${Math.floor(p.age)} yaş · ${esc(p.job)} · ${EDU[p.edu]} · ${esc(p.ideo)}</div></div></div>
+ return `<section class="pn daily-decisions" aria-label="Günlük kararlar"><div class="toprow"><h3 class="h3">Günlük kararlar</h3><span class="sub">${G.ap} eylem</span></div>${supportSummary()}${list(open.slice(0,4))}${open.length>4?`<details class="more-actions"><summary>Diğer günlük eylemler</summary>${list(open.slice(4))}</details>`:''}</section>
+ <section class="pn"><div class="row"><canvas class="pt" data-s="${p.seed}" style="width:72px;height:72px;flex:none"></canvas><div><h2>${esc(p.name)}</h2><div class="sub">${esc(posName(p))}${p.party?' · '+esc(p.party):''}</div><div class="sub">${Math.floor(p.age)} yaş · ${esc(p.job)} · ${EDU[p.edu]} · ${esc(p.ideo)}</div></div></div>
  <div class="bars">${bar('Tanınırlık',p.fame)}${bar('İtibar',p.rep)}${bar('Hitabet',p.speech)}${bar('Liderlik',p.lead)}${bar('Örgüt',p.org)}${toneBar('Sağlık',p.health)}</div>
  <button class="chip" data-switch="1">Başka karaktere geç</button></section>
- <section class="pn"><h3 class="h3">Bu dönem ne yapacaksın?</h3>${list(open)}</section>
  ${closed.length?`<section class="pn"><h3 class="h3">Henüz açılmadı</h3>${list(closed)}</section>`:''}
  <section class="pn"><h3 class="h3">Kariyer</h3><div class="tl">${p.hist.length?p.hist.slice(-12).map(h=>`<div><i>${h.a}</i><span>${esc(h.t)}</span></div>`).join(''):'<span class="sub">Kariyerin bu dönemde başlıyor.</span>'}</div></section>`}
 let tabRegion = function(){const p=me(),r=G.rs[G.sel],c=G.cs[r.c],mineR=r.id===p.r,lead=leads(p),own=lead&&lead.id===c.id;
@@ -428,12 +428,12 @@ let tabRegion = function(){const p=me(),r=G.rs[G.sel],c=G.cs[r.c],mineR=r.id===p
  const mv=moveA();if(mv.length)body+=`<section class="pn">${list(mv)}</section>`;
  return `<section class="pn"><div class="toprow"><h2>${esc(r.n)}</h2><span class="sub">${esc(c.n)}</span></div>
  <div class="sub">${r.pop.toFixed(1)} milyon nüfus · ${AUTON[r.auto]} · Vergi ${TAXN[r.tax].toLowerCase()}</div>
- <div class="bars">${toneBar('Zenginlik',r.wealth)}${toneBar('Altyapı',r.infra)}${toneBar('Eğitim',r.edu)}${toneBar('Sadakat',r.loyal)}${toneBar('Merkezle ilişki',r.cen)}${bar('Desteğin',r.sup,'var(--wax)')}</div>
+ <div class="bars">${toneBar('Zenginlik',r.wealth)}${toneBar('Altyapı',r.infra)}${toneBar('Eğitim',r.edu)}${toneBar('Sadakat',r.loyal)}${toneBar('Merkezle ilişki',r.cen)}${bar('Bölgedeki kişisel destek',r.sup,'var(--wax)')}</div>
  <div class="sub">Bölge bütçesi: <b>${r0(r.bud)}</b> · Yönetici: ${esc(gov.id===p.id?'Sen':gov.name)} · Belediye: ${esc(may.id===p.id?'Sen':may.name)}</div></section>${body}`}
 function paths(p: Person,c: Country){const n=natSup(p),a=[];
  if(natElect(c)){a.push(['Seçim kazan','Parti kur, tanınırlığını 40 yap, genel seçime aday ol.',p.party&&p.fame>=40]);
   a.push(['Koalisyona gir','Genel seçimde oyların %36 üzerini alırsan teklif gelebilir.',p.pos==='bakan']);
-  a.push(['Parlamento desteği','Ülke desteğin 40, yönetimin desteği 45 altı olmalı.',p.party&&n>=40&&c.appr<45]);}
+  a.push(['Parlamento desteği','Kişisel desteğin 40, yönetimin desteği 45 altı olmalı.',p.party&&n>=40&&c.appr<45]);}
  else a.push(['Rejimi zorla','Bu ülkede genel seçim yok. Yol kriz veya devrimden geçiyor.',false]);
  a.push(['İstifa ve devir','İstikrar 22 altına düşerse hükûmet sana teklif edilebilir.',c.stab<22&&(p.party||p.pos==='muhalefet')]);
  a.push(['Devrim veya askerî müdahale','Örgüt 60 ve tanınırlık 50 ya da general olmak gerekir.',p.pos==='general'||(p.org>=60&&p.fame>=50)]);
@@ -442,20 +442,20 @@ function paths(p: Person,c: Country){const n=natSup(p),a=[];
 let tabState = function(){const p=me(),m=leads(p),c=m||cOf(p),L=P(c.leader);
  const wars=G.wars.filter(w=>w.a===c.id||w.b===c.id).map(w=>G.cs[w.a===c.id?w.b:w.a].n);
  const head=`<section class="pn"><div class="row"><canvas class="pt" data-s="${L.seed}" style="width:60px;height:60px;flex:none"></canvas><div><h2>${esc(full(c))}</h2><div class="sub">${esc(ltitle(c))}: ${esc(L.id===p.id?'Sen':L.name)}</div><div class="sub">${natElect(c)?`Genel seçime ${nextIn(c,8,0)} dönem`:'Genel seçim yok'}${wars.length?` · <span class="warn">Savaş: ${esc(wars.join(', '))}</span>`:''}</div></div></div>
- <div class="bars">${toneBar('Ekonomi',c.econ)}${toneBar('İstikrar',c.stab)}${toneBar('Halk desteği',c.appr)}${bar('Ordu',c.army)}</div><div class="sub">Hazine: <b>${r0(c.T)}</b> · Bölge: ${crs(c).length}</div></section>`;
+ <div class="bars">${toneBar('Ekonomi',c.econ)}${toneBar('İstikrar',c.stab)}${toneBar('Yönetim desteği',c.appr)}${bar('Ordu',c.army)}</div><div class="sub">Hazine: <b>${r0(c.T)}</b> · Bölge: ${crs(c).length}</div></section>`;
  if(!m)return head+`<section class="pn"><h3 class="h3">İktidara giden yollar</h3>${paths(p,c)}</section>`;
  const mins=keysOf(MINN).map(k=>{const n=P(c.min[k]);return `<button class="act" data-min="${k}"><b>${MINN[k]}<i class="tag" style="font-style:normal">Yetenek ${r0(n.lead)}</i></b><span>${esc(n.name)}</span></button>`}).join('');
  const dip=alive().filter(o=>o.id!==c.id).map(o=>`<button class="act" data-dip="${o.id}"><b>${esc(o.n)}<i class="tag" style="font-style:normal">İlişki ${r0(c.rel[o.id]||0)}</i></b><span>${REGN[o.reg]} · Ordu ${r0(o.army)}${atWar(c.id,o.id)?' · Savaştasın':c.allies.includes(o.id)?' · Müttefik':''}</span></button>`).join('');
- return head+`<section class="pn"><h3 class="h3">Vergi politikası</h3><div class="chips">${[1,2,3].map(v=>`<button class="chip ${c.tax===v?'on':''}" data-st="${v}">${TAXN[v]}</button>`).join('')}</div></section>
- <section class="pn"><h3 class="h3">Devlet politikası</h3>${list(stateA())}<button class="act" data-rg="1"><b>Rejimi değiştir<i class="tag" style="font-style:normal">Devrim</i></b><span>Şu an: ${REGN[c.reg]}. İstikrar 20 düşer.</span></button></section>
+ return `<section class="pn daily-decisions" aria-label="Günlük kararlar"><div class="toprow"><h3 class="h3">Günlük kararlar</h3><span class="sub">${G.ap} eylem</span></div>${supportSummary()}${list(stateA().filter(a=>a.id!=='s:early'))}<div class="daily-tax"><span>Vergi</span><div class="chips">${[1,2,3].map(v=>`<button class="chip ${c.tax===v?'on':''}" data-st="${v}" aria-pressed="${c.tax===v}">${TAXN[v]}</button>`).join('')}</div></div></section>`+head+`
+ <section class="pn"><h3 class="h3">Seçim ve yönetim biçimi</h3>${list(stateA().filter(a=>a.id==='s:early'))}<button class="act" data-rg="1"><b>Rejimi değiştir<i class="tag" style="font-style:normal">Devrim</i></b><span>Şu an: ${REGN[c.reg]}. İstikrar 20 düşer.</span></button></section>
  <section class="pn"><h3 class="h3">Bakanlar</h3><div class="acts">${mins}</div></section>
  <section class="pn"><h3 class="h3">Diplomasi</h3><div class="acts">${dip}</div></section>`}
 let tabWorld = function(){const r=G.rs[G.sel],c=G.cs[r.c];const lab=alive().map(k=>{const rs=crs(k);if(!rs.length)return'';const x=rs.reduce((s,a)=>s+a.x,0)/rs.length,y=rs.reduce((s,a)=>s+a.y,0)/rs.length;return `<span class="lab" style="left:${x/W*100}%;top:${y/H*100}%">${esc(k.n)}</span>`}).join('');
- const ms=[['ulke','Ülkeler'],['sad','Sadakat'],['zen','Zenginlik'],['des','Desteğin']];
+ const ms=[['ulke','Ülkeler'],['sad','Sadakat'],['zen','Zenginlik'],['des','Kişisel destek']];
  return `<div class="chips">${ms.map(m=>`<button class="chip ${G.mapMode===m[0]?'on':''}" data-mm="${m[0]}">${m[1]}</button>`).join('')}</div>
  <p class="sub">AVRUPA · Türkiye dahil · Natural Earth 1:50m sınır verisi. Küçük ülkeleri listeden seçebilirsin.</p><label class="sub">Ülke seç <select id="country-jump">${alive().map(k=>`<option value="${k.cap}" ${c.id===k.id?'selected':''}>${esc(k.n)}</option>`).join('')}</select></label><div class="map-controls"><button class="chip" data-zoom="1">Yakınlaştır / Uzaklaştır</button><span class="mobile-help">Hedefe dokun → aşağıdan emir seç</span></div><div class="mapbox"><canvas id="map" width="${W}" height="${H}" aria-label="Türkiye dahil Avrupa haritası; ülke seçimi için aşağıdaki listeyi kullanabilirsiniz"></canvas><span class="lab" style="left:${r.x/W*100}%;top:${r.y/H*100}%">${esc(c.n)}</span></div>
  <section class="pn"><div class="toprow"><h2>${esc(r.n)}</h2><button class="chip" data-tab="bolge">Bölgeyi aç</button></div><div class="sub">${esc(full(c))} · ${esc(ltitle(c))}: ${esc(P(c.leader).id===me().id?'Sen':P(c.leader).name)}</div>
- <div class="bars">${toneBar('Ekonomi',c.econ)}${toneBar('İstikrar',c.stab)}${toneBar('Halk desteği',c.appr)}${bar('Ordu',c.army)}</div></section>
+ <div class="bars">${toneBar('Ekonomi',c.econ)}${toneBar('İstikrar',c.stab)}${toneBar('Yönetim desteği',c.appr)}${bar('Ordu',c.army)}</div></section>
  <section class="pn operation"><h3 class="h3">Seçili bölgeye emir ver</h3><p class="sub">${leads(me())?`Ayaklanma riski: %${r0(unrestRisk(c))} · Gizli olaylar: ${(G.discoveries||[]).length}/3`:'Harita emirleri için devlet başkanı olmalısın.'}</p>${list(mapActions())}${(G.operations||[]).length?`<p class="sub">${G.operations.length} emir bekliyor. Sonuçlar için dönemi bitir.</p>`:''}</section><section class="pn"><h3 class="h3">Son gelişmeler</h3><div class="log">${G.log.slice(0,4).map(l=>`<div><i>${l.d}</i><span>${esc(l.t)}</span></div>`).join('')}</div></section>`}
 const tabLog=()=>`<section class="pn"><h2>Tarih</h2><div class="log">${G.log.map(l=>`<div><i>${l.d}</i><span>${esc(l.t)}</span></div>`).join('')}</div></section>`;
 let modal = function(){const s=ui.sheet,q=G.q[0];
@@ -482,7 +482,7 @@ function vKar(){return `<div class="title band"><button class="back" data-v="tit
  <button class="big prime" data-v="zero"><b>Sıfırdan başla</b><span>25 yaşında, siyasi gücü olmayan bir yurttaş.</span></button>
  <button class="big" data-v="make"><b>Kendi karakterini yarat</b><span>Yaşını, mesleğini, görüşünü ve doğduğun yeri seç.</span></button>
  <button class="big" data-v="exist"><b>Mevcut biri ol</b><span>Dünyadaki general, belediye başkanı, muhalefet lideri veya başbakanlardan birini seç.</span></button></div></div>`}
-function vLead(){return `<div class="title band"><button class="back" data-v="${G&&G.pid!=null?'game':'title'}">Geri</button><h2 style="font-size:30px">Hangi ülkeyi yöneteceksin?</h2><div class="acts">${alive().map(c=>`<button class="big" data-lead="${c.id}"><b>${esc(full(c))}</b><span>Hazine ${r0(c.T)} · İstikrar ${r0(c.stab)} · Halk desteği ${r0(c.appr)} · ${crs(c).length} bölge</span></button>`).join('')}</div></div>`}
+function vLead(){return `<div class="title band"><button class="back" data-v="${G&&G.pid!=null?'game':'title'}">Geri</button><h2 style="font-size:30px">Hangi ülkeyi yöneteceksin?</h2><div class="acts">${alive().map(c=>`<button class="big" data-lead="${c.id}"><b>${esc(full(c))}</b><span>Hazine ${r0(c.T)} · İstikrar ${r0(c.stab)} · Yönetim desteği ${r0(c.appr)} · ${crs(c).length} bölge</span></button>`).join('')}</div></div>`}
 function vMake(){const f=ui.cnew,cs=alive(),cid=f.c!=null&&G.cs[f.c]&&G.cs[f.c].alive?f.c:cs[0].id;const rs=G.rs.filter(r=>r.c===cid);const rid=rs.some(r=>r.id===+f.r)?+f.r:rs[0].id;f.c=cid;f.r=rid;
  const opt=(a: (string|number)[][],v: string|number)=>a.map(x=>`<option value="${esc(x[0])}" ${String(x[0])===String(v)?'selected':''}>${esc(x[1])}</option>`).join('');
  return `<div class="title band"><button class="back" data-v="${G.pid!=null&&G.ps[G.pid].alive?'game':'kar'}">Geri</button><h2 style="font-size:30px">Yeni karakter</h2><div class="form">
