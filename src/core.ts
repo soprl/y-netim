@@ -165,7 +165,11 @@ let worldStep = function(){
  alive().forEach(c=>{updEcon(c);const rs=crs(c),war=inWar(c),min=(k: MinisterKey)=>P(c.min[k])||{lead:40};
   const inc=rs.reduce((s,r)=>s+r.wealth*r.pop*TAXF[c.tax]*.05,0)*(1+min('eko').lead/250)+c.trade.length*4;
   const maintenance=Math.min(c.army*.15+3,Math.max(2,inc*.65))+(war?Math.min(8,inc*.3+2):0);c.T+=inc-maintenance;c.lastBudget={income:inc,maintenance,balance:inc-maintenance};
-  const at=50+(c.econ-50)*.6+(c.stab-50)*.3-(c.tax-2)*11-(war?7:0)+(c.T<0?-10:0);c.appr=cl(c.appr+(at-c.appr)*.15+rnd(-2.2,2.2));
+  recordPeriodEffect(c.id,'Vergi ve ticaret gelirleri',{treasury:inc});recordPeriodEffect(c.id,'Ordu ve devlet bakımı',{treasury:-maintenance});
+  const approvalParts:[string,number][]=[['Beklentilerin dengelenmesi',(50-c.appr)*.15],['Ekonominin yönetime etkisi',(c.econ-50)*.6*.15],['İstikrarın yönetime etkisi',(c.stab-50)*.3*.15],['Vergi politikasının etkisi',-(c.tax-2)*11*.15],['Savaş yorgunluğu',war?-7*.15:0],['Borç baskısı',c.T<0?-10*.15:0],['Kamuoyundaki dönem belirsizliği',rnd(-2.2,2.2)]];
+  const approvalBefore=c.appr,rawApproval=approvalBefore+approvalParts.reduce((s,part)=>s+part[1],0);c.appr=cl(rawApproval);
+  for(const [label,appr] of approvalParts)recordPeriodEffect(c.id,label,{appr});
+  recordPeriodEffect(c.id,'Yönetim desteğinin 0–100 sınırı',{appr:c.appr-rawApproval});
   const st=56+(c.appr-50)*.45+min('ici').lead/14-(war?10:0)-(c.reg==='cun'?5:0)-(c.T<0?12:0);c.stab=cl(c.stab+(st-c.stab)*.13+rnd(-2.2,2.2));
   c.army=cl(c.army+(min('sav').lead-50)/120-(war?1.4:0)+rnd(-.3,.3));
   if(c.id!==(mine&&mine.id)){
@@ -334,8 +338,8 @@ function regionA():Action[]{const p=me(),r=G.rs[p.r],c=cOf(p),out=[];
 function stateA():Action[]{const p=me(),c=leads(p);if(!c)return[];const out=[],rs=crs(c);
  const b=(id:string,t:string,d:string,cost:number,f:()=>void)=>out.push(A(id,t,d,{cost3:cost,run(){c.T-=cost;f()}}));
  b('s:army','Orduyu güçlendir','Ordu +7.',40,()=>{c.army=cl(c.army+7);T('Ordu +7')});
- b('s:edu','Eğitim seferberliği','Tüm bölgelerde eğitim +4.',40,()=>{rs.forEach(r=>r.edu=cl(r.edu+4));T('Eğitim +4')});
- b('s:inf','Altyapı programı','Tüm bölgelerde altyapı +4.',40,()=>{rs.forEach(r=>r.infra=cl(r.infra+4));T('Altyapı +4')});
+ out.push(policyProjectAction(c,'education'));
+ out.push(policyProjectAction(c,'infrastructure'));
  b('s:wel','Sosyal destek paketi','Yönetim desteği +9.',30,()=>{c.appr=cl(c.appr+9);T('Yönetim desteği +9')});
  if(natElect(c))out.push(A('s:early','Erken seçim','Bir sonraki dönem seçim yapılır.',{lock:G.turn<4?'Henüz erken':null,run(){c.off=(8-(G.turn+1)%8)%8;T('Seçim kararı alındı')}}));
  return out;}

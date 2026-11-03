@@ -30,6 +30,7 @@
     "src/parties.ts",
     "src/movements.ts",
     "src/polish.ts",
+    "src/policies.ts",
     "src/boot.ts"
   ]
 }

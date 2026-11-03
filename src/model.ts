@@ -43,6 +43,11 @@ interface Operation { costPaid?:number; chanceRoll?:number; chancePercent?:numbe
 interface Unrest { r: number; age: number; power: number; reason?: string }
 interface IndependenceMovement { r: number; parent: number; sponsor: number; age: number; phase: string; support: number; votes: number | null }
 interface PressAction { turn: number; c: number; kind: string; title: string; detail: string }
+type PolicyKind='education'|'infrastructure';
+interface CountryMetrics {econ:number;stab:number;appr:number;treasury:number}
+interface PeriodEffect {label:string;changes:Partial<CountryMetrics>;origin?:'decision'|'project'|'world';detail?:string}
+interface PeriodBaseline {c:number;turn:number;metrics:CountryMetrics}
+interface PolicyProject {id:string;c:number;kind:PolicyKind;started:number;lastTurn:number;progress:number;paid:number;status:'active'|'paused'|'completed'|'cancelled'}
 interface StoryChoice { turn: number; title: string; route: string }
 interface StoryChain { id: string; c: number; kind: StoryKind; stage: number; started: number; due: number; route: string; status: StoryStatus; awaiting: boolean; summary: string; choices: StoryChoice[] }
 interface NewsEdition {
@@ -50,7 +55,8 @@ interface NewsEdition {
  actions: Pick<PressAction, 'title' | 'detail' | 'kind'>[];
  voices: { name: string; text: string }[]; reports: string[];
  metrics: { econ: number; stab: number; appr: number; treasury: number };
- delta: { econ: number; stab: number; appr: number };
+ delta: { econ: number; stab: number; appr: number; treasury?:number };
+ causes?:PeriodEffect[];baseline?:CountryMetrics;
  stories: { title: string; stage: number; status: StoryStatus; summary: string }[];
 }
 interface VoteBars { you: number; riv: number }
@@ -62,6 +68,7 @@ interface QueuedEvent {
  turn?: number; total?: number; preview?: boolean; parties?: NightParty[];
 }
 interface GameState {
+ policyProjects?:PolicyProject[];policySequence?:number;periodBaseline?:PeriodBaseline;periodEffects?:PeriodEffect[];
  v: number; version?: string; turn: number; cs: Country[]; rs: Region[]; ps: Person[]; pid: number | null;
  log: { d: string; t: string }[]; q: QueuedEvent[]; ap: number; wars: War[]; sel: number; tab: GameTab;
  mapMode: MapMode; extra: number; unrest: Unrest[]; discoveries: string[]; operations?: Operation[];

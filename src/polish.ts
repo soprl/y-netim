@@ -80,9 +80,11 @@ const relationshipSocial=socialStep;socialStep=function():void {
 function priorities():PriorityItem[]{const c=cOf(me()),leader=leads(me()),items:PriorityItem[]=[];
  if(G.unrest.some(u=>G.rs[u.r].c===c.id))items.push({level:'urgent',title:'Bölgelerde huzursuzluk',detail:'Yerel talepleri ve müdahale seçeneklerini incele.',target:'dunya'});
  if(leader&&c.T<20)items.push({level:'urgent',title:'Hazine daralıyor',detail:'Yeni emirlerden önce gelir ve giderleri gözden geçir.',target:'budget'});
+ if(leader&&G.policyProjects?.some(p=>p.c===c.id&&p.status==='paused'))items.push({level:'urgent',title:'Program ödenek bekliyor',detail:'Yatırım takviminden kalan ödemeyi ve ilerlemeyi incele.',target:'investments'});
  if(c.electionDue-G.turn<=2)items.push({level:'important',title:'Seçim yaklaşıyor',detail:`${Math.max(0,c.electionDue-G.turn)} dönem kaldı. Örgütlenme ve kampanyayı birlikte değerlendir.`,target:'elections'});
  if(leader&&cohesion()<45)items.push({level:'important',title:'Kabine güven istiyor',detail:'Düşük güven istikrarı zayıflatabilir.',target:'contacts'});
  if(G.operations.some(o=>o.c===c.id))items.push({level:'info',title:'Emirler sürüyor',detail:'İlerleme ve ikmal raporlarını incele.',target:'orders'});
+ if(leader&&G.policyProjects?.some(p=>p.c===c.id&&(p.status==='active'||p.status==='paused')))items.push({level:'info',title:'Yatırımlar sürüyor',detail:'Programların ilerlemesini ve kalan bütçesini izle.',target:'investments'});
  if(!items.length)items.push({level:'info',title:leader?'Yönetimi sağlamlaştır':'Siyasi tabanını büyüt',detail:leader?'Bütçe, yönetim desteği ve karakter ilişkilerini birlikte gözet.':'Örgütlenme, itibar ve parti çalışmaları farklı yollar açar.',target:leader?'devlet':'karakter'});
  return items.slice(0,3);
 }
@@ -120,7 +122,7 @@ const polishedValidation=validateState;validateState=function(s:GameState):GameS
 const advancedOpen=new Set<string>();
 function followPriority(target:string):void {
  if(['contacts','orders'].includes(target)){ui.sheet={t:target};render();return;}
- const panels:Record<string,string>={budget:'Kamu bütçesi',elections:'Meclis ve seçimler'};
+ const panels:Record<string,string>={budget:'Kamu bütçesi',elections:'Meclis ve seçimler',investments:'policy-projects'};
  const title=panels[target];
  if(title){
   G.tab='devlet';const key=`devlet:${title}`;advancedOpen.add(key);render();
