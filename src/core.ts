@@ -510,8 +510,8 @@ let render:RenderFunction=function(){presentEvent();const app=document.getElemen
  else if(ui.view==='lead')app.innerHTML=vLead();
  else if(ui.view==='make')app.innerHTML=vMake();
  else if(ui.view==='exist')app.innerHTML=vExist();
- else{const tabs=[['karakter','Karakter'],['dunya','Dünya'],['bolge','Bölge'],['devlet',leads(me())?'Devlet':'İktidar'],['tarih','Gazete']];
-  const body={karakter:tabChar,dunya:tabWorld,bolge:tabRegion,devlet:tabState,tarih:pressArchive}[G.tab]();
+ else{const tabs=[['karakter','Karakter'],['dunya','Dünya'],['bolge','Bölge'],['devlet',leads(me())?'Devlet':'İktidar'],['meclis','Meclis'],['tarih','Gazete']];
+  const body={karakter:tabChar,dunya:tabWorld,bolge:tabRegion,devlet:tabState,meclis:tabParliament,tarih:pressArchive}[G.tab]();
   const left=G.ap>0&&!me().jail?`${G.ap} eylem kaldı · Dönemi bitir`:'Dönemi bitir';
   app.innerHTML=`${header()}<main class="band ${G.tab==='dunya'?'world-screen':''}">${body}</main><div class="bot"><div class="endrow band"><button class="end" id="end">${left}</button></div><nav class="band" aria-label="Sekmeler">${tabs.map(t=>`<button class="${G.tab===t[0]?'on':''}" data-tab="${t[0]}">${t[1]}</button>`).join('')}</nav></div>${modal()}${ui.flash?`<div id="stamp"><div>${ui.flash}</div></div>`:''}`;
   if(ui.flash){ui.flash=null;setTimeout(()=>{const s=document.getElementById('stamp');if(s)s.remove()},650)}
