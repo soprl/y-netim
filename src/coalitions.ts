@@ -46,12 +46,16 @@ function partyClosureLock(c:Country,index:number):string|null {
  const p=me(),party=c.parties[index],mine=coalitionPlayerIndex(c);if(!Number.isInteger(index)||!party||party.closed)return 'Bu parti zaten kapalı veya bulunamadı.';
  if(!p.alive||p.jail||G.q.length)return 'Bu durumda parti kapatılamaz.';if(mine!==index&&c.leader!==p.id)return 'Yalnızca kendi partini feshedebilirsin; diğer partiler için iktidarda olmalısın.';
  if(c.parties.filter(p=>!p.closed).length<2)return 'Ülkedeki son açık parti kapatılamaz.';
- if(c.coalition.includes(index)||c.parties[index].candidate===c.leader)return 'Önce bu partinin hükümetteki görevini bitir.';
+ const governmentParty=party.candidate===c.leader;
+ if(c.coalition.includes(index)&&!(c.leader===p.id&&governmentParty))return 'Önce bu koalisyon ortaklığını bitir.';
+ if(governmentParty&&c.leader!==p.id)return 'Bu partiyi ancak iktidar lideri kapatabilir.';
  return G.ap<1?'1 eylem gerekli.':mine!==index&&c.T<25?'25 hazine gerekli.':null;
 }
 function closePoliticalParty(index:number):void {
  const c=cOf(me());if(partyClosureLock(c,index)||ui.sheet?.t!=='partyClosure'||ui.sheet.id!==index)return;const party=c.parties[index],own=coalitionPlayerIndex(c)===index;
  if(!own){c.T-=25;c.repression=cl(c.repression+12);c.stab=cl(c.stab-8);c.appr=cl(c.appr-5);}
+ const wasGovernmentParty=party.candidate===c.leader;
+ if(c.leader===G.pid){c.coalition=c.coalition.filter(i=>i!==index);if(c.coalitionDeal&&(c.coalitionDeal.top===index||c.coalitionDeal.partner===index))delete c.coalitionDeal;if(wasGovernmentParty){c.incumbentParty=-1;c.parliamentGovernment=G.pid;}}
  G.ap--;party.closed=own?'dissolved':'banned';party.closedTurn=G.turn;party.members=0;party.funds=0;party.campaign=0;party.lastFinance={dues:0,upkeep:0};
  for(const p of G.ps)if(cOf(p).id===c.id&&p.party===party.name){p.party=null;if(['parti','muhalefet','uye','hareket'].includes(p.pos))p.pos='vatandas';}
  if(P(c.opp)?.id===party.candidate){const alternative=c.parties.find(p=>!p.closed&&p.candidate!==c.leader);if(alternative){c.opp=alternative.candidate;P(c.opp).pos='muhalefet';}}
@@ -59,7 +63,7 @@ function closePoliticalParty(index:number):void {
 }
 function coalitionManagementPanel():string {
  const c=cOf(me()),mine=coalitionPlayerIndex(c),deal=c.coalitionDeal,exit=coalitionExitLock(c),managed=mine>=0||c.leader===G.pid;
- return `${c.coalition.includes(mine)&&c.coalition.length>1?`<section class="pn"><h3 class="h3">Koalisyon ortaklığın</h3><p>${c.coalition.map(i=>esc(c.parties[i].name)).join(' + ')}</p>${deal?`<p class="sub">Program: ${esc(deal.program)} · ${deal.ministries.length} bakanlık · ${deal.cost} program ödeneği</p>`:''}<button class="act" data-coalition-exit="1" ${exit?'disabled':''}><b>Koalisyondan çekil</b><span>${exit||'1 eylem · İstikrar −8. Çoğunluk kaybolursa 2 dönem içinde erken seçim.'}</span></button></section>`:''}${managed?`<section class="pn"><h3 class="h3">Parti kapatma ve fesih</h3><p class="sub">Kendi partini feshedebilirsin. İktidardaysan başka partiyi 25 hazine ve 1 eylemle kapatabilirsin: baskı +12, istikrar −8, yönetim desteği −5. Mevcut vekiller kalır; kapalı parti sonraki seçime katılamaz.</p>${c.parties.map((party,index)=>{const why=partyClosureLock(c,index);return `<button class="act" data-party-closure="${index}" ${why?'disabled':''}><b>${esc(party.name)} · ${party.closed?'Kapalı':mine===index?'Partiyi feshet':'Partiyi kapat'}</b><span>${why|| (mine===index?'1 eylem; kişisel veya kamu parası harcanmaz.':'25 hazine ve 1 eylem.')}</span></button>`;}).join('')}</section>`:''}`;
+ return `${c.coalition.includes(mine)&&c.coalition.length>1?`<section class="pn"><h3 class="h3">Koalisyon ortaklığın</h3><p>${c.coalition.map(i=>esc(c.parties[i].name)).join(' + ')}</p>${deal?`<p class="sub">Program: ${esc(deal.program)} · ${deal.ministries.length} bakanlık · ${deal.cost} program ödeneği</p>`:''}<button class="act" data-coalition-exit="1" ${exit?'disabled':''}><b>Koalisyondan çekil</b><span>${exit||'1 eylem · İstikrar −8. Çoğunluk kaybolursa 2 dönem içinde erken seçim.'}</span></button></section>`:''}${managed?`<section class="pn priorities"><h3 class="h3">Parti kapatma ve fesih</h3><p class="sub">Kendi partini feshedebilirsin. İktidardaysan diğer partileri 25 hazine ve 1 eylemle kapatabilirsin: baskı +12, istikrar −8, yönetim desteği −5. Hükümet partini de kapatabilirsin; iktidarın sürer ama artık bağımsız yönetici olursun. Son açık parti korunur. Mevcut vekiller kalır; kapalı parti sonraki seçime katılamaz.</p>${c.parties.map((party,index)=>{const why=partyClosureLock(c,index);return `<button class="act" data-party-closure="${index}" ${why?'disabled':''}><b>${esc(party.name)} · ${party.closed?'Kapalı':mine===index?'Partiyi feshet':'Partiyi kapat'}</b><span>${why|| (mine===index?'1 eylem; kişisel veya kamu parası harcanmaz.':'25 hazine ve 1 eylem.')}</span></button>`;}).join('')}</section>`:''}`;
 }
 const coalitionState=tabState;tabState=()=>coalitionState()+coalitionManagementPanel();
 const coalitionCharacter=tabChar;tabChar=()=>coalitionCharacter()+coalitionManagementPanel();
