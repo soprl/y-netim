@@ -24,6 +24,7 @@
     "src/core.ts",
     "src/expansion.ts",
     "src/cultures.ts",
+    "src/motion.ts",
     "src/cinematics.ts",
     "src/country-map.ts",
     "src/world-life.ts",
@@ -38,6 +39,7 @@
     "src/coalitions.ts",
     "src/parliament-view.ts",
     "src/world-crises.ts",
+    "src/design.ts",
     "src/boot.ts"
   ]
 }
