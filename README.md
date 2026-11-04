@@ -1,5 +1,10 @@
 # Ya Yönet Ya Devret
 
+## 2.8.2 ile gelenler
+
+- Küçük partiler, oyları %7 olsa bile koalisyon görüşmesine katılabilir.
+- Koalisyon, toplam sandalye çoğunluğu oluşana kadar yeni ortaklarla genişletilir; bakanlık pazarlığında her ortak alacağı portföyleri seçer.
+
 ## 2.8.1 ile gelenler
 
 - Kriz pencerelerine bölgeyi vurgulayan harita, üç aşamalı karar çizgisi ve seçim sonrası sonuç haritası eklendi.
@@ -13,7 +18,7 @@
 - Devlet başkanı, orduyu ve askerî yönetimi kullanarak krizleri bastırabilir.
 
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.8.1**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.8.2**.
 
 ## 2.7.1 ile gelenler
 

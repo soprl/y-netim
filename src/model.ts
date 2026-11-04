@@ -35,7 +35,8 @@ interface IndependentCandidacy {person:number;region:number;campaign:number}
 interface IndependentSeat {person:number;region:number}
 interface ParliamentQuestion {id:number;c:number;author:number;party:string|null;topic:string;turn:number;status:'pending'|'answered'|'refused'|'unanswered';region?:number;answerTurn?:number;newsTurn?:number}
 interface ParliamentBloc {leader:number;term:number;supporters:number;transfers:{partyId:string;count:number}[];buyerPartyId?:string}
-interface CoalitionDeal {top:number;partner:number;program:string;ministries:MinisterKey[];cost:number;turn:number}
+interface CoalitionTerm {partner:number;program:string;ministries:MinisterKey[];cost:number;turn:number}
+interface CoalitionDeal {top:number;partner:number;program:string;ministries:MinisterKey[];cost:number;turn:number;agreements?:CoalitionTerm[]}
 interface Country {
  coalitionDeal?:CoalitionDeal;
  parliamentBloc?:ParliamentBloc;parliamentGovernment?:number;
@@ -45,7 +46,7 @@ interface Country {
  alive: boolean; cap: number; min: Record<MinisterKey, number>; leader: number; gen: number; opp: number;
  inflation?: number; repression?: number; navy?: number; patron?: number | null; coalition?: number[];
  parties?: Party[]; tension?: number; security?: number; vice?: number | null; incumbentParty?: number;
- electionDue?: number; lastElection?: ElectionResult; pendingCoalition?: { top: number; deadline: number; offer?: number } | null;
+ electionDue?: number; lastElection?: ElectionResult; pendingCoalition?: { top: number; deadline: number; offer?: number; partners?:number[] } | null;
  lastBudget?: { income: number; maintenance: number; balance: number }; independentTurn?: number;
 }
 interface War { a: number; b: number; front: number; t: number }
@@ -89,7 +90,7 @@ interface GameState {
 }
 interface PartyDraft { name: string; ideology: string; color: string; symbol: string; manifesto: string; promises: PartyPromise[] }
 interface NewCharacter { name?: string; age?: number | string; edu?: number; job?: string; ideo?: string; c?: number; r?: number }
-interface Sheet {top?:number;partner?:number;t: string; kind?: OperationKind; r?: number; id?: number | string; k?: MinisterKey; cost?: number }
+interface Sheet {top?:number;partner?:number;t: string; kind?: OperationKind; r?: number; id?: number | string; k?: MinisterKey; cost?: number; ministers?:MinisterKey[] }
 interface Projection { sx: number; sy: number; sw: number; sh: number; dx: number; dy: number; dw: number; dh: number }
 interface UIState {
  movementFlagDraft?:MovementFlag;view: string; sheet: Sheet | null; flash: string | null; cnew: NewCharacter; pick: string;

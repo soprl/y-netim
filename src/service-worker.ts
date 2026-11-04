@@ -1,5 +1,5 @@
 const worker = self as unknown as ServiceWorkerGlobalScope;
-const CACHE='ya-yonet-europe-v2.8.1';
+const CACHE='ya-yonet-europe-v2.8.2';
 const ASSETS=['./','./index.html','./assets/game.js','./expansion.css','./world-life.css','./assets/city-atlas.webp','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 worker.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(url=>new Request(url,{cache:'reload'}))))));
 worker.addEventListener('message',e=>{if(e.data?.type==='SKIP_WAITING')worker.skipWaiting();});
