@@ -1,5 +1,11 @@
 # Ya Yönet Ya Devret
 
+## 2.8.1 ile gelenler
+
+- Kriz pencerelerine bölgeyi vurgulayan harita, üç aşamalı karar çizgisi ve seçim sonrası sonuç haritası eklendi.
+- Harita bölgesi seçildiğinde ülke haritasının tamamı yeniden oluşturulmaz; canlı dünya katmanı telefonda daha düşük kare hızında çizilir ve harita katmanı yeniden kullanılır.
+- Mobil kayıt açılışında güncel sürüm ve servis çalışanı önbelleği yenilenir.
+
 ## 2.8.0 ile gelenler
 
 - Dünya krizileri: bağımsızlık ilanları, lider ölümü sonrası taht kavgaları ve devlet bölünmeleri.
@@ -7,7 +13,7 @@
 - Devlet başkanı, orduyu ve askerî yönetimi kullanarak krizleri bastırabilir.
 
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.8.0**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.8.1**.
 
 ## 2.7.1 ile gelenler
 

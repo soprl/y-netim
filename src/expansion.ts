@@ -1,6 +1,6 @@
 'use strict';
 /* Ya Yönet Ya Devret 2.0 — strateji ve mobil sistemler. */
-const VERSION='2.8.0';
+const VERSION='2.8.1';
 const LEGACY_DEF=JSON.parse(JSON.stringify(DEF));
 const LEGACY_GRID=grid.slice(), REGION_LAYOUT:RegionLayout[]=[], OLD_TO_NEW:number[]=[];
 // More strategic districts, without changing any international coastline/border.
