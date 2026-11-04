@@ -139,7 +139,7 @@ function becomeLeader(p: Person,c: Country,how: string){const old=P(c.leader);if
  clearOffice(p);c.leader=p.id;p.pos='lider';p.r=c.cap;p.cand=null;p.legacy+=40;
  if(natSup(p,c)<c.appr)crs(c).forEach(r=>r.sup=Math.max(r.sup,c.appr));
  hist(p,`${ltitle(c)} oldu (${how})`);say(`${p.name}, ${how} yoluyla ${full(c)} yönetimini devraldı.`)}
-function clearOffice(p: Person){if(p.mpCountry!=null){const c=G.cs[p.mpCountry];if(c)c.independentSeats=(c.independentSeats||[]).filter(s=>s.person!==p.id);delete p.mpCountry;}G.rs.forEach(r=>{if(r.gov===p.id)r.gov=mkP({r:r.id,pos:'vali'}).id;if(r.mayor===p.id)r.mayor=mkP({r:r.id,pos:'belediye'}).id})}
+function clearOffice(p: Person){for(const c of G.cs)if(c.parliamentBloc?.leader===p.id)releaseParliamentBloc(c);if(p.mpCountry!=null){const c=G.cs[p.mpCountry];if(c)c.independentSeats=(c.independentSeats||[]).filter(s=>s.person!==p.id);delete p.mpCountry;}G.rs.forEach(r=>{if(r.gov===p.id)r.gov=mkP({r:r.id,pos:'vali'}).id;if(r.mayor===p.id)r.mayor=mkP({r:r.id,pos:'belediye'}).id})}
 let makeCountry = function(r: Region,leaderId: number,parent: number){G.extra++;const id=G.cs.length,c={id,n:r.n,reg:'cum',col:EXTRA[(G.extra-1)%EXTRA.length],tax:2,T:30,econ:r.wealth,stab:45,appr:55,army:25,rel:{},allies:[],trade:[],off:rint(0,7),alive:true,cap:r.id,min:{}} as Country;
  G.cs.push(c);c.leader=leaderId;c.gen=mkP({r:r.id,pos:'general',job:'Subay'}).id;const o=mkP({r:r.id,pos:'muhalefet'});o.party=IDEO[o.ideo];c.opp=o.id;
  for(const k of keysOf(MINN))c.min[k]=mkP({r:r.id,pos:'bakanNPC'}).id;

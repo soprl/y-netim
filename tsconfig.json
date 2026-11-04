@@ -34,6 +34,8 @@
     "src/map-navigation.ts",
     "src/civic-tools.ts",
     "src/subjects.ts",
+    "src/parliament.ts",
+    "src/coalitions.ts",
     "src/boot.ts"
   ]
 }

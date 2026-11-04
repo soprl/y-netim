@@ -1,0 +1,9 @@
+# Koalisyon pazarlığı, çekilme ve parti kapatma — 2.6.1
+
+Pazarlık seçimden sonra hükümet kurma görevi veya ortaklık teklifi bulunan oyuncuya açılır. Her iki taraf da en az 51 sandalye sağlamalıdır. Oyuncu lider veya küçük ortak olarak üç program/bakanlık paketi arasından teklif seçer. Ortağın sandalye payı %40 ve üzerindeyse iki, altındaysa bir bakanlık ister. Yetersiz teklif reddedilir; para ve eylem harcanmaz. Kabulde 1 eylem, pakete göre 10/15/20 kamu hazinesi ödeneği ve 1/2 bakanlık tahsisi uygulanır. Bunlar ilk denge hipotezleridir [PLACEHOLDER]; sandalye ağırlığına karşı siyasi taviz tercihinin görünür olması amaçlanır.
+
+Koalisyonun her iki tarafındaki oyuncu da ortaklıktan çekilebilir. İşlem 1 eylem ve istikrar −8 [PLACEHOLDER] harcar; kişisel ve kamu parası harcamaz. Ayrılan taraf liderse görev kalan ortağa geçer; küçük ortaksa muhalefete döner ve bakanlıkları sona erer. Kalan hükümet 51'in altındaysa en geç iki dönem içinde erken seçim planlanır [PLACEHOLDER]. Böylece ortaklıktan çıkış siyasi sonuç üretir.
+
+Oyuncu hükümet dışında kendi partisini ücretsiz (1 eylem [PLACEHOLDER]) feshedebilir. İktidar başka partiyi 25 hazine ve 1 eylemle kapatabilir [PLACEHOLDER]; baskı +12, istikrar −8, yönetim desteği −5 [PLACEHOLDER]. Aktif hükümet partisi önce ortaklıktan ayrılmalıdır; son açık parti kapatılamaz. Mevcut vekil sandalyeleri korunur, ancak kapalı parti kampanya/aidat üretmez ve sonraki seçimde oy alamaz. Bu, kayıtlı sandalye sayısını ve geçmiş seçim sonucunu değiştirmeden partinin siyasi faaliyetini sonlandırır.
+
+Kabul testleri: az teklif ve yetersiz bütçe kaynak harcamaz; kabul edilen paket kabineye yansır; iki rolde de çekilme çalışır; çoğunluk kaybı seçim takvimini değiştirir; kapalı parti gelecekte sıfır oy/sandalye alır, kasası ve aidatı çalışmaz; fesih kamu parasını etkilemez; kayıt doğrulaması yeni alanları denetler.

@@ -1,6 +1,12 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.0**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.1**.
+
+## 2.6.1 ile gelenler
+
+Bağımsız milletvekili seçildikten sonra Karakter veya İktidar/Devlet ekranından kişisel parayla 1, 5 veya 10 vekil desteği satın alınabilir. Destek, kaynak partinin mevcut sandalyesinden ayrılır. Kendi sandalyen dahil 51 desteğe ulaşıldığında 1 eylem harcayarak hükümet kurulabilir; parti kurmak gerekmez. Destekler yeni genel seçimde sona erer. Fiyatlar ve kurallar `docs/parliament-design.md` içinde açıklanır.
+
+Koalisyon görüşmelerinde artık program ödeneği ve bakanlık dağılımı için üç teklif paketi sunulabilir. Küçük ortak veya lider olarak koalisyondan çekilmek mümkündür; çoğunluk kaybında erken seçim planlanır. Kendi partini feshetme ve iktidarda başka bir partiyi kapatma seçenekleri de vardır. Ayrıntılar `docs/coalition-design.md` içinde.
 
 ## 2.6.0 ile gelenler
 

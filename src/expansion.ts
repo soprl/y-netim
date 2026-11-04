@@ -1,6 +1,6 @@
 'use strict';
 /* Ya Yönet Ya Devret 2.0 — strateji ve mobil sistemler. */
-const VERSION='2.6.0';
+const VERSION='2.6.1';
 const LEGACY_DEF=JSON.parse(JSON.stringify(DEF));
 const LEGACY_GRID=grid.slice(), REGION_LAYOUT:RegionLayout[]=[], OLD_TO_NEW:number[]=[];
 // More strategic districts, without changing any international coastline/border.
@@ -150,24 +150,24 @@ function warAndAIStep(){
 /* Adaylar, kampanyalar, oy oranları ve koalisyonlar. */
 let initParties = function(c:Country){
  if(!c.parties?.length){c.parties=[{name:'Birlik ve Kalkınma',candidate:c.leader,color:'#e9b84d',campaign:0},{name:'Demokratik Emek',candidate:c.opp,color:'#e27181',campaign:0},{name:'Yeşil Gelecek',candidate:null,color:'#71c69d',campaign:0}];c.incumbentParty=0;}
- c.parties.forEach((p,i)=>{if(p.candidate==null||!G.ps[p.candidate]?.alive)p.candidate=mkP({r:c.cap,pos:'parti',party:p.name,fame:45,org:40}).id;p.campaign ??=0;p.share ??=i===0?45:i===1?35:20;p.seats ??=0;});
- if(!c.parties.some(p=>p.candidate===c.leader)){c.parties[c.incumbentParty||0].candidate=c.leader;}
+ c.parties.forEach((p,i)=>{if(p.closed)return;if(p.candidate==null||!G.ps[p.candidate]?.alive)p.candidate=mkP({r:c.cap,pos:'parti',party:p.name,fame:45,org:40}).id;p.campaign ??=0;p.share ??=i===0?45:i===1?35:20;p.seats ??=0;});
+ if(c.parliamentGovernment!==c.leader&&!c.parties.some(p=>!p.closed&&p.candidate===c.leader)){c.parties[c.incumbentParty>=0&&c.incumbentParty<c.parties.length&&!c.parties[c.incumbentParty].closed?c.incumbentParty:c.parties.findIndex(p=>!p.closed)].candidate=c.leader;}
  c.electionDue ??= G.turn+nextIn(c,8,0);
 }
-function playerParty(c: Country){let i=c.parties.findIndex(p=>p.candidate===G.pid);if(i<0&&cOf(me()).id===c.id&&me().cand==='ulusal'){c.parties.push({name:me().party||'Yurttaş Hareketi',candidate:G.pid,color:'#8ea6ff',campaign:0,share:10,seats:0});i=c.parties.length-1;}return i;}
+function playerParty(c: Country){let i=c.parties.findIndex(p=>!p.closed&&p.candidate===G.pid);if(i<0&&cOf(me()).id===c.id&&me().cand==='ulusal'){c.parties.push({name:me().party||'Yurttaş Hareketi',candidate:G.pid,color:'#8ea6ff',campaign:0,share:10,seats:0});i=c.parties.length-1;}return i;}
 let voteForecast = function(c: Country){initParties(c);playerParty(c);const rs=crs(c),education=rs.reduce((s,r)=>s+r.edu,0)/(rs.length||1);
- const weights=c.parties.map((p,i)=>{const candidate=P(p.candidate);return Math.max(2,(i===c.incumbentParty?c.appr*.8:(100-c.appr)*.33+12)+(i===2?education*.1:0)+p.campaign*.8+candidate.org*.12+candidate.speech*.08+(p.candidate===G.pid?natSup(me(),c)*.18:0));});const sum=weights.reduce((a,b)=>a+b,0);return weights.map(w=>w/sum*100);
+ const weights=c.parties.map((p,i)=>{if(p.closed)return 0;const candidate=P(p.candidate);return Math.max(2,(i===c.incumbentParty?c.appr*.8:(100-c.appr)*.33+12)+(i===2?education*.1:0)+p.campaign*.8+candidate.org*.12+candidate.speech*.08+(p.candidate===G.pid?natSup(me(),c)*.18:0));});const sum=weights.reduce((a,b)=>a+b,0);return weights.map(w=>w/sum*100);
 }
 function allocateSeats(shares: number[],total:number=100){const quotas=shares.map(s=>s*total/100),seats=quotas.map(Math.floor);let remaining=total-seats.reduce((a,b)=>a+b,0);const order=quotas.map((s,i)=>({i,frac:s-Math.floor(s)})).sort((a,b)=>b.frac-a.frac);for(let k=0;k<remaining;k++)seats[order[k%order.length].i]++;return seats;}
 function installGovernment(c: Country,indices: number[]){const winner=c.parties[indices[0]],p=P(winner.candidate),old=P(c.leader);if(old&&old.id!==p.id){old.pos=old.party?'muhalefet':'eski';if(old.id===G.pid)hist(old,'Genel seçimde görevi bıraktı');}
  if(p.id===G.pid&&c.leader!==G.pid)becomeLeader(p,c,'seçim ve koalisyon');else{c.leader=p.id;p.pos='lider';p.r=c.cap;}c.incumbentParty=indices[0];c.coalition=indices;c.pendingCoalition=null;c.stab=cl(c.stab+5);c.appr=cl(c.appr+3);
- const opp=c.parties.find((p,i)=>!indices.includes(i));if(opp){c.opp=opp.candidate;if(P(c.opp).id!==c.leader)P(c.opp).pos='muhalefet';}
+ const opp=c.parties.find((p,i)=>!p.closed&&!indices.includes(i));if(opp){c.opp=opp.candidate;if(P(c.opp).id!==c.leader)P(c.opp).pos='muhalefet';}
  const pi=playerParty(c);if(pi>=0&&pi!==indices[0]&&indices.includes(pi))me().pos='bakan';
  say(`${c.n}: ${indices.map(i=>c.parties[i].name).join(' + ')} hükûmeti kuruldu.`);
 }
-let runElection = function(c: Country){const independents=resolveIndependentSeats(c);const forecast=voteForecast(c),raw=forecast.map(x=>Math.max(1,x+rnd(-4,4))),sum=raw.reduce((a,b)=>a+b,0),shares=raw.map(x=>x/sum*100),seats=allocateSeats(shares,100-independents.length);
+let runElection = function(c: Country){const independents=resolveIndependentSeats(c);const forecast=voteForecast(c),raw=forecast.map((x,i)=>c.parties[i].closed?0:Math.max(1,x+rnd(-4,4))),sum=raw.reduce((a,b)=>a+b,0),shares=raw.map(x=>x/sum*100),seats=allocateSeats(shares,100-independents.length);
  c.parties.forEach((p,i)=>{p.share=shares[i];p.seats=seats[i];p.campaign=0;});c.lastElection={turn:G.turn,parties:c.parties.map(p=>({name:p.name,share:p.share,seats:p.seats,candidate:p.candidate})).concat(independents.map(s=>({name:'Bağımsız · '+P(s.person).name,share:0,seats:1,candidate:s.person})))};G.electionHistory.unshift({c:c.id,...c.lastElection});G.electionHistory=G.electionHistory.slice(0,80);c.electionDue=G.turn+8;
- const order=c.parties.map((p,i)=>i).sort((a,b)=>seats[b]-seats[a]),top=order[0],pi=playerParty(c);if(pi>=0)me().cand=null;
+ const order=c.parties.map((p,i)=>i).filter(i=>!c.parties[i].closed).sort((a,b)=>seats[b]-seats[a]),top=order[0],pi=playerParty(c);if(pi>=0)me().cand=null;
  if(seats[top]>=51)installGovernment(c,[top]);
  else if(c.parties[top].candidate===G.pid){c.pendingCoalition={top,deadline:G.turn+2};notify(c,'Koalisyon görüşmeleri',`Hiçbir parti 51 sandalyeye ulaşamadı. Devlet ekranından iki dönem içinde ortak seç; aksi hâlde azınlık hükûmeti kurulur.`,'vote')}
  else{const partner=order.slice(1).find(i=>seats[top]+seats[i]>=51);if(partner!=null&&c.parties[partner].candidate===G.pid){c.pendingCoalition={top,deadline:G.turn+2,offer:partner};G.q.push({id:'coalitionOffer',c:c.id,top,partner});}else installGovernment(c,partner!=null?[top,partner]:[top]);}
@@ -177,7 +177,7 @@ function campaignAIParties(c:Country):void {
  if(G.turn%2!==0||!natElect(c))return;
  const campaigning:string[]=[];
  for(const party of c.parties){
-  if(party.candidate===G.pid||party.founder===G.pid||!P(party.candidate)?.alive||party.funds<8||party.campaign>=30)continue;
+  if(party.closed||party.candidate===G.pid||party.founder===G.pid||!P(party.candidate)?.alive||party.funds<8||party.campaign>=30)continue;
   party.funds-=8;
   party.campaign=Math.min(30,party.campaign+5);
   campaigning.push(party.name);
@@ -195,7 +195,7 @@ let politicsAction = function(action: string,index: number){const c=leads(me())|
  if(leader)c.T-=cost;else me().money-=cost;G.ap--;const party=c.parties[pi];if(action==='rally'){party.campaign=cl(party.campaign+10,0,40);me().org=cl(me().org+2);}else{party.campaign=cl(party.campaign+7,0,40);me().speech=cl(me().speech+3);}say(`${party.name}: ${action==='rally'?'kampanya mitingi':'aday tartışması'} düzenlendi.`);save();render();}
 function appendPoliticsNote(html:string,note:string):string {const end=html.lastIndexOf('</section>');return end<0?html+note:html.slice(0,end)+note+html.slice(end);}
 let politicsPanel = function(){const c=leads(me())||cOf(me());initParties(c);const forecast=voteForecast(c),pi=playerParty(c),pending=c.pendingCoalition;
- return `<section class="pn"><h3 class="h3">Kamu bütçesi</h3><p class="sub">Son dönem gelir ${r0(c.lastBudget?.income||0)} · Bakım ${r0(c.lastBudget?.maintenance||0)} · Net ${r0(c.lastBudget?.balance||0)}. Program ödenekleri, harekât, yardım ve koruma giderleri ayrıca düşer. Kampanyalar parti kasasından ödenir.</p></section><section class="pn politics"><div class="toprow"><h3 class="h3">Meclis ve seçimler</h3><span class="tag">${natElect(c)?Math.max(0,c.electionDue-G.turn)+' dönem kaldı':'Seçim yok'}</span></div><p class="sub">Anketler tahmindir; kampanya ve ülkenin durumu sonucu değiştirir.</p>${c.parties.map((p,i)=>`<div class="party-row"><div class="toprow"><b>${esc(p.name)}</b><b>%${forecast[i].toFixed(1)}</b></div><div class="meter"><i style="width:${forecast[i]}%;background:${p.color}"></i></div><span class="sub">Aday: ${esc(P(p.candidate).name)} · Son seçim ${p.seats} sandalye · Kampanya ${r0(p.campaign)} · Kasa ${Math.floor(p.funds||0)}</span></div>`).join('')}${pi>=0?`<div class="chips"><button class="chip" data-politic="rally">Miting · ${initiative(c)?'15 hazine':'8 para'}</button><button class="chip" data-politic="debate">Aday tartışması · ${initiative(c)?'15 hazine':'8 para'}</button></div>`:'<p class="sub">Kampanya için ulusal adaylığını ilan et.</p>'}${pending&&c.parties[pending.top].candidate===G.pid?`<h3 class="h3">Koalisyon ortağını seç</h3>${c.parties.map((p,i)=>i!==pending.top&&p.seats+c.parties[pending.top].seats>=51?`<button class="act" data-politic="coalition" data-party="${i}"><b>${esc(p.name)}</b><span>Birlikte ${p.seats+c.parties[pending.top].seats} sandalye. Hükûmeti kur.</span></button>`:'').join('')}`:''}${c.lastElection?`<p class="sub">Son sonuç: ${c.lastElection.parties.map(p=>`${esc(p.name)} %${p.share.toFixed(1)}`).join(' · ')}</p>`:''}${c.coalition.length?`<p class="sub">Hükûmet: ${c.coalition.map(i=>esc(c.parties[i]?.name||'')).join(' + ')}</p>`:''}</section>`;
+ return `<section class="pn"><h3 class="h3">Kamu bütçesi</h3><p class="sub">Son dönem gelir ${r0(c.lastBudget?.income||0)} · Bakım ${r0(c.lastBudget?.maintenance||0)} · Net ${r0(c.lastBudget?.balance||0)}. Program ödenekleri, harekât, yardım ve koruma giderleri ayrıca düşer. Kampanyalar parti kasasından ödenir.</p></section><section class="pn politics"><div class="toprow"><h3 class="h3">Meclis ve seçimler</h3><span class="tag">${natElect(c)?Math.max(0,c.electionDue-G.turn)+' dönem kaldı':'Seçim yok'}</span></div><p class="sub">Anketler tahmindir; kampanya ve ülkenin durumu sonucu değiştirir.</p>${c.parties.map((p,i)=>`<div class="party-row"><div class="toprow"><b>${esc(p.name)}${p.closed?' · Kapalı':''}</b><b>%${forecast[i].toFixed(1)}</b></div><div class="meter"><i style="width:${forecast[i]}%;background:${p.color}"></i></div><span class="sub">Aday: ${esc(P(p.candidate).name)} · Son seçim ${p.seats} sandalye · Kampanya ${r0(p.campaign)} · Kasa ${Math.floor(p.funds||0)}</span></div>`).join('')}${pi>=0?`<div class="chips"><button class="chip" data-politic="rally">Miting · ${initiative(c)?'15 hazine':'8 para'}</button><button class="chip" data-politic="debate">Aday tartışması · ${initiative(c)?'15 hazine':'8 para'}</button></div>`:'<p class="sub">Kampanya için ulusal adaylığını ilan et.</p>'}${pending&&c.parties[pending.top].candidate===G.pid?`<h3 class="h3">Koalisyon ortağını seç</h3>${c.parties.map((p,i)=>i!==pending.top&&p.seats+c.parties[pending.top].seats>=51?`<button class="act" data-politic="coalition" data-party="${i}"><b>${esc(p.name)}</b><span>Birlikte ${p.seats+c.parties[pending.top].seats} sandalye. Hükûmeti kur.</span></button>`:'').join('')}`:''}${c.lastElection?`<p class="sub">Son sonuç: ${c.lastElection.parties.map(p=>`${esc(p.name)} %${p.share.toFixed(1)}`).join(' · ')}</p>`:''}${c.coalition.length?`<p class="sub">Hükûmet: ${c.coalition.map(i=>esc(c.parties[i]?.name||'')).join(' + ')}</p>`:''}</section>`;
 }
 
 /* Başkanlık güvenliği, yardımcılar ve görev devri; grafik şiddet içermez. */
@@ -314,7 +314,7 @@ function handleControls(e: MouseEvent){const b=eventElement(e).closest('button')
  if(d.checkUpdate)checkUpdate();
  if(d.applyUpdate)applyUpdate();
  if(d.min&&isMinisterKey(d.min)){ui.cand=[0,1,2].map(()=>({name:regionalName(G.rs[me().r].id),lead:rint(25,85),seed:rint(1,99999)}));ui.sheet={t:'min',k:d.min};render();}
- if(d.coalition){const q=G.q[0];if(q?.id!=='coalitionOffer')return;const c=G.cs[q.c];if(d.coalition==='yes')installGovernment(c,[q.top,q.partner]);else{const alternative=c.parties.map((_,i)=>i).find(i=>i!==q.top&&i!==q.partner&&c.parties[i].seats+c.parties[q.top].seats>=51);installGovernment(c,alternative==null?[q.top]:[q.top,alternative]);}G.q.shift();save();render();}
+ if(d.coalition){const q=G.q[0];if(q?.id!=='coalitionOffer')return;const c=G.cs[q.c];if(d.coalition==='yes'){openCoalitionNegotiation(q.top,q.partner);return;}else{const alternative=c.parties.map((_,i)=>i).find(i=>!c.parties[i].closed&&i!==q.top&&i!==q.partner&&c.parties[i].seats+c.parties[q.top].seats>=51);installGovernment(c,alternative==null?[q.top]:[q.top,alternative]);}G.q.shift();save();render();}
 }
 document.addEventListener('click',handleControls,true);
 document.addEventListener('change',async e=>{if(eventElement(e).id!=='import-save')return;const file=eventElement<HTMLInputElement>(e).files[0];if(!file)return;try{if(file.size>5_000_000)throw Error('Dosya çok büyük.');ui.pendingImport=parseImport(await file.text());ui.importError=null;}catch(err){ui.importError=errorMessage(err);ui.pendingImport=null;}render();});
