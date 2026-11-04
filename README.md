@@ -1,6 +1,10 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.1**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.2**.
+
+## 2.6.2 ile gelenler
+
+Parti liderleri de kişisel parayla vekil desteği satın alabilir; aktarılan sandalyeler toplamı değiştirmez ve yeni genel seçimde anlaşmalar çözülür. Rejim değiştirme ve parti kapatma bölümleri Devlet ekranında görünür tutulur. İktidar lideri kendi hükümet partisini kapatırsa bağımsız yönetici olarak görevde kalabilir.
 
 ## 2.6.1 ile gelenler
 
