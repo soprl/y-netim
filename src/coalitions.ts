@@ -11,7 +11,7 @@ function coalitionNegotiationLock(c:Country,top:number,partner:number):string|nu
  if(!Number.isInteger(top)||!Number.isInteger(partner)||top===partner||!c.parties[top]||!c.parties[partner]||c.parties[top].closed||c.parties[partner].closed||![top,partner].includes(mine))return 'Geçerli bir koalisyon tarafı olmalısın.';
  if(!pending||pending.top!==top||G.turn>pending.deadline)return 'Hükümet kurma görüşmelerinin süresi doldu.';
  if(offer&&!(offer.id==='coalitionOffer'&&offer.c===c.id&&offer.top===top&&offer.partner===partner))return 'Önce mevcut olayı tamamla.';
- if(c.parties[top].seats+c.parties[partner].seats<51)return 'İki partinin toplamı en az 51 sandalye olmalı.';
+ if(c.parties[top].seats+c.parties[partner].seats<parliamentMajority(c))return 'İki partinin toplamı en az ${parliamentMajority(c)} sandalye olmalı.';
  return G.ap<1?'1 eylem gerekli.':null;
 }
 function coalitionRequiredMinistries(c:Country,top:number,partner:number):number {return c.parties[partner].seats/(c.parties[top].seats+c.parties[partner].seats)>=.4?2:1;}
@@ -39,8 +39,8 @@ function withdrawCoalition():void {
  for(const key of keysOf(MINN))if(P(c.min[key]).party===party.name)c.min[key]=mkP({r:c.cap,pos:'bakanNPC'}).id;
  if(wasLeader)installGovernment(c,remaining);else{c.coalition=remaining;me().pos='muhalefet';c.opp=G.pid;}
  delete c.coalitionDeal;c.stab=cl(c.stab-8);G.ap--;const seats=remaining.reduce((sum,i)=>sum+c.parties[i].seats,0);
- if(seats<51){c.electionDue=Math.min(c.electionDue,G.turn+2);say(`${c.n}: koalisyon çoğunluğu kayboldu; iki dönem içinde erken seçim yapılacak.`);}
- hist(me(),`${party.name} koalisyondan çekildi`);recordDecision('coalition','Koalisyondan çekildi',c.id,`${party.name} hükümetten ayrıldı. Kalan hükümet ${seats} sandalye; istikrar −8.${seats<51?' Erken seçim takvimi başladı.':''}`);ui.sheet=null;save();render();
+ if(seats<parliamentMajority(c)){c.electionDue=Math.min(c.electionDue,G.turn+2);say(`${c.n}: koalisyon çoğunluğu kayboldu; iki dönem içinde erken seçim yapılacak.`);}
+ hist(me(),`${party.name} koalisyondan çekildi`);recordDecision('coalition','Koalisyondan çekildi',c.id,`${party.name} hükümetten ayrıldı. Kalan hükümet ${seats} sandalye; istikrar −8.${seats<parliamentMajority(c)?' Erken seçim takvimi başladı.':''}`);ui.sheet=null;save();render();
 }
 function partyClosureLock(c:Country,index:number):string|null {
  const p=me(),party=c.parties[index],mine=coalitionPlayerIndex(c);if(!Number.isInteger(index)||!party||party.closed)return 'Bu parti zaten kapalı veya bulunamadı.';
@@ -68,7 +68,7 @@ function coalitionManagementPanel():string {
 const coalitionState=tabState;tabState=()=>coalitionState()+coalitionManagementPanel();
 const coalitionCharacter=tabChar;tabChar=()=>coalitionCharacter()+coalitionManagementPanel();
 const bargainingModal=modal;modal=function(){const s=ui.sheet,c=G&&G.pid!=null?cOf(me()):null;if(c&&s?.t==='coalitionNegotiation'){const top=s.top,partner=s.partner,why=coalitionNegotiationLock(c,top,partner);return dialog('Hükümet kurma pazarlığı',`<p>${esc(c.parties[top].name)} + ${esc(c.parties[partner].name)} · ${c.parties[top].seats+c.parties[partner].seats} sandalye.</p><p class="sub">Ortak en az ${coalitionRequiredMinistries(c,top,partner)} bakanlık istiyor. Kabul edilen teklif 1 eylem harcar. Reddedilen teklifte kaynak harcanmaz.</p>${why?`<p class="warn">${esc(why)}</p>`:''}${COALITION_PACKAGES.map((p,index)=>`<button class="big" data-coalition-package="${index}" ${why||c.T<p.cost?'disabled':''}><b>${p.title}</b><span>${p.desc}${p.ministries<coalitionRequiredMinistries(c,top,partner)?' · Ortak daha geniş teklif istiyor.':''}</span></button>`).join('')}`,'<button class="big" data-close="1"><b>Görüşmeye ara ver</b></button>','diplomacy');}
- if(c&&s?.t==='coalitionExit')return dialog('Koalisyondan çekil','<p>1 eylem ve istikrar −8. Partinin hükümet ortaklığı ve bakanlıkları sona erer. Kalan hükümet 51 sandalyenin altındaysa iki dönem içinde erken seçim yapılır.</p>','<button class="big prime" data-coalition-exit-confirm="1"><b>Ortaklıktan çekil</b></button><button class="big" data-close="1"><b>Vazgeç</b></button>');
+ if(c&&s?.t==='coalitionExit')return dialog('Koalisyondan çekil','<p>1 eylem ve istikrar −8. Partinin hükümet ortaklığı ve bakanlıkları sona erer. Kalan hükümet ${parliamentMajority(c)} sandalyenin altındaysa iki dönem içinde erken seçim yapılır.</p>','<button class="big prime" data-coalition-exit-confirm="1"><b>Ortaklıktan çekil</b></button><button class="big" data-close="1"><b>Vazgeç</b></button>');
  if(c&&s?.t==='partyClosure'){const index=+s.id,own=coalitionPlayerIndex(c)===index;return dialog(own?'Partiyi feshet':'Siyasi partiyi kapat',`<p>${esc(c.parties[index].name)} seçime katılamaz ve parti kasası kapatılır. Mevcut vekillerin sandalyesi korunur.</p><p>${own?'1 eylem.':'25 hazine, 1 eylem; baskı +12, istikrar −8 ve yönetim desteği −5.'}</p>`,`<button class="big prime" data-party-closure-confirm="${index}"><b>${own?'Partiyi feshet':'Partiyi kapat'}</b></button><button class="big" data-close="1"><b>Vazgeç</b></button>`);}
  return bargainingModal();};
 document.addEventListener('click',e=>{const b=eventElement(e).closest<HTMLButtonElement>('[data-coalition-package],[data-coalition-exit],[data-coalition-exit-confirm],[data-party-closure],[data-party-closure-confirm]');if(!b||b.disabled||!G||document.querySelector('.modalbg')&&!b.closest('.modal'))return;e.preventDefault();e.stopImmediatePropagation();

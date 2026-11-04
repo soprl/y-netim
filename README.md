@@ -1,6 +1,15 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.3**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.7.0**.
+
+## 2.7.0 ile gelenler
+
+- Meclis için ayrı görünüm; bağımsız ve partili muhalefet milletvekillerine soru önergesi, hükümete yanıt veya ret seçenekleri.
+- Hükümete muhalefet partilerine kınama ve parti fonlarını dondurma yaptırımları.
+- Oyuncu dışındaki bağımsız adaylar da seçimlere katılır. Türkiye’de TBMM 600 sandalyedir; diğer ülkelerde 100.
+- Cumhurbaşkanı “Çalış” eylemiyle 100 kişisel para kazanır.
+- Komşu ülkenin başkent olmayan bölgesini hazineyle satın alıp orada halka seslenerek desteği artırabilirsin.
+- Her ülkede başlangıçta altı parti bulunur; eski kayıtlar da altıya tamamlanır.
 
 ## 2.6.3 ile gelenler
 
