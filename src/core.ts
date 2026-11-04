@@ -389,20 +389,19 @@ function ensureMapGeometry(){if(mapRasterCache.geometry)return mapRasterCache.ge
  }
  mapRasterCache.canvas=document.createElement('canvas');mapRasterCache.canvas.width=W;mapRasterCache.canvas.height=H;return mapRasterCache.geometry={flags,bounds,sea};
 }
-function mapRasterKey(){return G.mapMode+'|'+G.sel+'|'+G.cs.map(c=>c.col).join(',')+'|'+G.rs.map(r=>r.c+':'+(G.mapMode==='sad'?r.loyal:G.mapMode==='zen'?r.wealth:G.mapMode==='des'?r.sup:'')).join(',')+'|'+G.wars.map(w=>w.a+':'+w.b).sort().join(',');}
+function mapRasterKey(){return G.mapMode+'|'+G.cs.map(c=>c.col).join(',')+'|'+G.rs.map(r=>r.c+':'+(G.mapMode==='sad'?r.loyal:G.mapMode==='zen'?r.wealth:G.mapMode==='des'?r.sup:'')).join(',')+'|'+G.wars.map(w=>w.a+':'+w.b).sort().join(',');}
 function buildMapRaster(key: string){const geometry=ensureMapGeometry(),ctx=mapRasterCache.canvas.getContext('2d'),img=ctx.createImageData(W,H);img.data.set(geometry.sea);const data=img.data,flags=geometry.flags,owners=G.rs.map(r=>r.c),cols=G.cs.map(c=>hex(c.col)),n=G.cs.length,war=new Uint8Array(n*n);
  for(const w of G.wars){war[w.a*n+w.b]=1;war[w.b*n+w.a]=1;}
  const palettes=G.rs.map(r=>{const rgb=G.mapMode==='ulke'?cols[r.c]:ramp(G.mapMode==='sad'?r.loyal:G.mapMode==='zen'?r.wealth:r.sup);return [rgb,rgb.map(v=>v*.8),rgb.map(v=>v*.464),rgb.map(v=>v*.82),rgb.map(v=>v*.656)];});
  for(let i=0;i<grid.length;i++){const g=grid[i];if(g<0)continue;const f=flags[i],owner=owners[g],k=i*4;let border=false,battle=false,other;
   if(f&1&&(other=owners[grid[i-1]])!==owner){border=true;battle ||= !!war[owner*n+other];}if(f&2&&(other=owners[grid[i+1]])!==owner){border=true;battle ||= !!war[owner*n+other];}if(f&4&&(other=owners[grid[i-W]])!==owner){border=true;battle ||= !!war[owner*n+other];}if(f&8&&(other=owners[grid[i+W]])!==owner){border=true;battle ||= !!war[owner*n+other];}
-  if(g===G.sel&&(f&15)){data[k]=255;data[k+1]=226;data[k+2]=120;}
-  else if(border){data[k]=battle?214:15;data[k+1]=battle?58:20;data[k+2]=battle?85:26;}
+  if(border){data[k]=battle?214:15;data[k+1]=battle?58:20;data[k+2]=battle?85:26;}
   else{const rgb=palettes[g][f&16?(f&32?4:3):f&32?(f&15?2:1):0];data[k]=rgb[0];data[k+1]=rgb[1];data[k+2]=rgb[2];}
  }
  ctx.putImageData(img,0,0);mapRasterCache.key=key;mapRasterCache.builds++;
 }
 let drawMap = function(cv: HTMLCanvasElement){if(!cv)return;ensureMapGeometry();const key=mapRasterKey();if(mapRasterCache.key!==key)buildMapRaster(key);else mapRasterCache.hits++;
- if(cv.width!==W)cv.width=W;if(cv.height!==H)cv.height=H;const x=cv.getContext('2d');x.drawImage(mapRasterCache.canvas,0,0);drawOperations(x);
+ if(cv.width!==W)cv.width=W;if(cv.height!==H)cv.height=H;const x=cv.getContext('2d');x.drawImage(mapRasterCache.canvas,0,0);const selected=G.rs[G.sel],geometry=ensureMapGeometry();if(selected){const b=geometry.bounds[G.sel];if(b){x.fillStyle='#ffe278';for(let y=b.y0;y<=b.y1;y++)for(let px=b.x0;px<=b.x1;px++){const i=y*W+px;if(grid[i]===G.sel&&(geometry.flags[i]&15))x.fillRect(px,y,1,1);}}}drawOperations(x);
  for(const r of G.rs){const c=G.cs[r.c],cap=c.cap===r.id;x.fillStyle='#10161c';x.fillRect(r.x-(cap?2:1),r.y-(cap?2:1),cap?5:3,cap?5:3);x.fillStyle=cap?'#ecb94f':'#eef1e4';x.fillRect(r.x-(cap?1:0),r.y-(cap?1:0),cap?3:1,cap?3:1);}
  for(const u of G.unrest||[]){const r=G.rs[u.r];x.strokeStyle='#ff6571';x.lineWidth=3;x.beginPath();x.arc(r.x,r.y,9,0,Math.PI*2);x.stroke();}
  const pr=G.rs[me().r];x.fillStyle='#d63a55';x.fillRect(pr.x-1,pr.y-6,3,3);x.fillRect(pr.x,pr.y-3,1,1);
