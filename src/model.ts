@@ -1,7 +1,7 @@
 /** Shared persisted model. Browser globals stay classic scripts for save/test compatibility. */
 type Regime = 'cum' | 'fed' | 'kra' | 'cun';
 type MinisterKey = 'eko' | 'ici' | 'sav' | 'dis';
-type GameTab = 'karakter' | 'dunya' | 'bolge' | 'devlet' | 'tarih';
+type GameTab = 'karakter' | 'dunya' | 'bolge' | 'devlet' | 'meclis' | 'tarih';
 type MapMode = 'ulke' | 'sad' | 'zen' | 'des';
 type OperationKind = 'conquest' | 'amphibious' | 'destabilize' | 'election' | 'independence' | 'alliance' | 'protectorate' | 'fort' | 'relief' | 'garrison';
 type StoryKind = 'labor' | 'port' | 'border';
@@ -19,19 +19,20 @@ interface Region {
  id: number; n: string; c: number; x: number; y: number; pop: number; wealth: number; infra: number;
  edu: number; loyal: number; auto: number; tax: number; bud: number; adm: number; cen: number;
  sup: number; gov: number; mayor: number; unemployment?: number; grievance?: number; fort?: number;
- resistance?: number; occupation?: number; policyTurn?: number; lastSupportTurn?:number; lastReconcileTurn?:number;
+ resistance?: number; occupation?: number; policyTurn?: number; lastSupportTurn?:number; lastReconcileTurn?:number; purchasedBy?:number; purchasedTurn?:number; lastAddressTurn?:number;
 }
 interface Party {
  closed?:'dissolved'|'banned';closedTurn?:number;
  name: string; candidate: number; color: string; campaign: number; share?: number; seats?: number;
  partyId?: string; members?: number; funds?: number; ideology?: string; manifesto?: string;
  promises?: PartyPromise[]; symbol?: string; userDefined?: boolean; newParty?: boolean;
- founder?: number | null; established?: number; lastFinance?: { dues: number; upkeep: number };
+ founder?: number | null; established?: number; lastFinance?: { dues: number; upkeep: number }; sanctionUntil?:number;
 }
 interface ElectionResultParty { name: string; share: number; seats: number; candidate: number }
 interface ElectionResult { turn: number; parties: ElectionResultParty[] }
 interface IndependentCandidacy {person:number;region:number;campaign:number}
 interface IndependentSeat {person:number;region:number}
+interface ParliamentQuestion {id:number;c:number;author:number;party:string|null;topic:string;turn:number;status:'pending'|'answered'|'refused';answerTurn?:number}
 interface ParliamentBloc {leader:number;term:number;supporters:number;transfers:{partyId:string;count:number}[];buyerPartyId?:string}
 interface CoalitionDeal {top:number;partner:number;program:string;ministries:MinisterKey[];cost:number;turn:number}
 interface Country {
@@ -82,7 +83,7 @@ interface GameState {
  mapMode: MapMode; extra: number; unrest: Unrest[]; discoveries: string[]; operations?: Operation[];
  movements?: IndependenceMovement[]; electionHistory?: (ElectionResult & { c: number })[]; cinemaSequence?: number;
  news?: NewsEdition[]; pressActions?: PressAction[]; storyChains?: StoryChain[]; storyCooldowns?: Record<string, number>;
- decisionReports?:DecisionReport[]; reportSequence?:number; actionUsage?:Record<string,{turn:number;count:number}>; lastBondEvent?:number; lastReadNews?: string | null; armedMovements?: ArmedMovement[]; controlCampaigns?: ControlCampaign[];
+ decisionReports?:DecisionReport[]; reportSequence?:number; actionUsage?:Record<string,{turn:number;count:number}>; lastBondEvent?:number; lastReadNews?: string | null; armedMovements?: ArmedMovement[]; controlCampaigns?: ControlCampaign[]; parliamentQuestions?:ParliamentQuestion[]; parliamentQuestionSequence?:number;
 }
 interface PartyDraft { name: string; ideology: string; color: string; symbol: string; manifesto: string; promises: PartyPromise[] }
 interface NewCharacter { name?: string; age?: number | string; edu?: number; job?: string; ideo?: string; c?: number; r?: number }
@@ -120,7 +121,7 @@ function errorMessage(error: unknown): string { return error instanceof Error ? 
 function byId<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
 
 interface TimedToast { (): void; t?: number }
-function isGameTab(value: string): value is GameTab { return ['karakter','dunya','bolge','devlet','tarih'].includes(value); }
+function isGameTab(value: string): value is GameTab { return ['karakter','dunya','bolge','devlet','meclis','tarih'].includes(value); }
 function isMapMode(value: string): value is MapMode { return ['ulke','sad','zen','des'].includes(value); }
 function isMinisterKey(value: string): value is MinisterKey { return ['eko','ici','sav','dis'].includes(value); }
 
