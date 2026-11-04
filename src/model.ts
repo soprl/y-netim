@@ -6,6 +6,7 @@ type MapMode = 'ulke' | 'sad' | 'zen' | 'des';
 type OperationKind = 'conquest' | 'amphibious' | 'destabilize' | 'election' | 'independence' | 'alliance' | 'protectorate' | 'fort' | 'relief' | 'garrison';
 type StoryKind = 'labor' | 'port' | 'border';
 type StoryStatus = 'active' | 'closed';
+type WorldCrisisKind = 'independence' | 'succession' | 'partition';
 type PartyPromise = 'jobs' | 'economy' | 'education' | 'rights' | 'security' | 'ecology';
 type NumericPersonKey = 'money' | 'health' | 'fame' | 'org' | 'rep' | 'speech' | 'lead' | 'legacy';
 interface HistoryEntry { a: number; t: string }
@@ -74,8 +75,9 @@ interface QueuedEvent {
  id: string; reportId?:string; bondKind?:string; uid?: string; bars?: VoteBars; k?: string; title?: string; text?: string; scene?: string; secret?: boolean;
  pid?: number; r?: number; c?: number; top?: number; partner?: number; chainId?: string;
  victim?: number; name?: string; seed?: number; country?: string; role?: string; saved?: boolean; demo?: boolean;
- turn?: number; total?: number; preview?: boolean; parties?: NightParty[];
+ turn?: number; total?: number; preview?: boolean; parties?: NightParty[]; crisis?:string;
 }
+interface WorldCrisis {id:string;kind:WorldCrisisKind;country:number;region:number;secondaryRegion?:number;breakaway?:number;claimants?:[number,number];created:number;status:'open'|'resolved';outcome?:string}
 interface GameState {
  policyProjects?:PolicyProject[];policySequence?:number;periodBaseline?:PeriodBaseline;periodEffects?:PeriodEffect[];
  v: number; version?: string; turn: number; cs: Country[]; rs: Region[]; ps: Person[]; pid: number | null;
@@ -83,7 +85,7 @@ interface GameState {
  mapMode: MapMode; extra: number; unrest: Unrest[]; discoveries: string[]; operations?: Operation[];
  movements?: IndependenceMovement[]; electionHistory?: (ElectionResult & { c: number })[]; cinemaSequence?: number;
  news?: NewsEdition[]; pressActions?: PressAction[]; storyChains?: StoryChain[]; storyCooldowns?: Record<string, number>;
- decisionReports?:DecisionReport[]; reportSequence?:number; actionUsage?:Record<string,{turn:number;count:number}>; lastBondEvent?:number; lastReadNews?: string | null; armedMovements?: ArmedMovement[]; controlCampaigns?: ControlCampaign[]; parliamentQuestions?:ParliamentQuestion[]; parliamentQuestionSequence?:number;
+ decisionReports?:DecisionReport[]; reportSequence?:number; actionUsage?:Record<string,{turn:number;count:number}>; lastBondEvent?:number; lastReadNews?: string | null; armedMovements?: ArmedMovement[]; controlCampaigns?:ControlCampaign[]; parliamentQuestions?:ParliamentQuestion[]; parliamentQuestionSequence?:number; worldCrises?:WorldCrisis[]; worldCrisisSequence?:number;
 }
 interface PartyDraft { name: string; ideology: string; color: string; symbol: string; manifesto: string; promises: PartyPromise[] }
 interface NewCharacter { name?: string; age?: number | string; edu?: number; job?: string; ideo?: string; c?: number; r?: number }

@@ -1,6 +1,13 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.7.1**.
+## 2.8.0 ile gelenler
+
+- Dünya krizileri: bağımsızlık ilanları, lider ölümü sonrası taht kavgaları ve devlet bölünmeleri.
+- Oyuncu taraf seçebilir, arabuluculuk yapabilir veya komşuysa krizi askerî fırsata çevirebilir.
+- Devlet başkanı, orduyu ve askerî yönetimi kullanarak krizleri bastırabilir.
+
+
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.8.0**.
 
 ## 2.7.1 ile gelenler
 

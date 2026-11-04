@@ -37,6 +37,7 @@
     "src/parliament.ts",
     "src/coalitions.ts",
     "src/parliament-view.ts",
+    "src/world-crises.ts",
     "src/boot.ts"
   ]
 }
