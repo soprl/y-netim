@@ -1,6 +1,10 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.7.0**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.7.1**.
+
+## 2.7.1 ile gelenler
+
+- Meclis önergelerinin yanıtı, reddi ve yanıtsız kalması bölgesel halk desteğine ve parti kampanyalarına yansır. Yanıtsız önergeler dönem gazetesinde haber olur.
 
 ## 2.7.0 ile gelenler
 
