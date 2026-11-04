@@ -32,7 +32,7 @@ interface ElectionResultParty { name: string; share: number; seats: number; cand
 interface ElectionResult { turn: number; parties: ElectionResultParty[] }
 interface IndependentCandidacy {person:number;region:number;campaign:number}
 interface IndependentSeat {person:number;region:number}
-interface ParliamentQuestion {id:number;c:number;author:number;party:string|null;topic:string;turn:number;status:'pending'|'answered'|'refused';answerTurn?:number}
+interface ParliamentQuestion {id:number;c:number;author:number;party:string|null;topic:string;turn:number;status:'pending'|'answered'|'refused'|'unanswered';region?:number;answerTurn?:number;newsTurn?:number}
 interface ParliamentBloc {leader:number;term:number;supporters:number;transfers:{partyId:string;count:number}[];buyerPartyId?:string}
 interface CoalitionDeal {top:number;partner:number;program:string;ministries:MinisterKey[];cost:number;turn:number}
 interface Country {
