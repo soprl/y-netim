@@ -1,6 +1,10 @@
 # Ya Yönet Ya Devret
 
-Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.2**.
+Türkiye ve Avrupa haritasında geçen, TypeScript ile yazılmış mobil siyasi simülasyon. Sürüm: **2.6.3**.
+
+## 2.6.3 ile gelenler
+
+Parti çoğunluğuyla hükümet kurulduğunda sandalyeler seçim dönemi sonuna kadar korunur.
 
 ## 2.6.2 ile gelenler
 
