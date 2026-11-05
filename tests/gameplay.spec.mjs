@@ -29,7 +29,8 @@ test('rivals campaign from their own funds without spending player resources',as
     campaignAIParties(c);
     return {funds:c.parties.map(p=>p.funds),campaign:c.parties.map(p=>p.campaign),treasury:c.T,ap:G.ap};
   });
-  expect(result).toEqual({funds:[16,8,7],campaign:[10,5,0],treasury:100,ap:3});
+  // Ülkeler altı partiyle başlar; ikinci parti kampanyayı finanse edemeyecek kadar yoksuldur.
+  expect(result).toEqual({funds:[16,8,7,8,8,8],campaign:[10,5,0,5,5,5],treasury:100,ap:3});
 });
 
 test('AI respects cadence, campaign cap, player ownership and elections being allowed',async({page})=>{
@@ -71,9 +72,10 @@ test('ending a turn includes rival campaigning in the actual election report',as
   });
   expect(result.turn).toBe(2);
   expect(result.shares.reduce((a,b)=>a+b,0)).toBeCloseTo(100);
-  expect(result.seats.reduce((a,b)=>a+b,0)).toBe(100);
+  expect(result.seats.reduce((a,b)=>a+b,0)).toBe(await page.evaluate(()=>parliamentSize(cOf(me()))));
   expect(result.factors[0].value).toContain('kampanya 0.0');
-  expect(result.factors.slice(1).every(f=>f.value.includes('kampanya 5.0'))).toBe(true);
+  // Bağımsız adaylar oy oranı yerine sandalye ile raporlanır; kampanya karşılaştırması partiler içindir.
+  expect(result.factors.slice(1).filter(f=>!f.label.startsWith('Bağımsız')).every(f=>f.value.includes('kampanya 5.0'))).toBe(true);
 });
 
 for(const [width,height] of [[320,568],[360,640],[390,844],[844,390]]){
@@ -195,3 +197,4 @@ test('an existing 2.5.0 save retains both support values and rival campaign fund
   await expect(page.locator('.support-summary')).toContainText('Yönetim desteği %43');
   expect(await page.evaluate(()=>cOf(me()).parties.every(p=>Number.isFinite(p.funds)))).toBe(true);
 });
+

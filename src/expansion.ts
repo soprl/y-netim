@@ -150,7 +150,7 @@ function warAndAIStep(){
 /* Adaylar, kampanyalar, oy oranları ve koalisyonlar. */
 let initParties = function(c:Country){
  if(!c.parties?.length){c.parties=[{name:'Birlik ve Kalkınma',candidate:c.leader,color:'#e9b84d',campaign:0},{name:'Demokratik Emek',candidate:c.opp,color:'#e27181',campaign:0},{name:'Yeşil Gelecek',candidate:null,color:'#71c69d',campaign:0}];c.incumbentParty=0;}
- const founding=[['Cumhuriyetçi Merkez','#6e8bd5'],['Halkçı Yenilik','#dc8d52'],['Özgürlük Birliği','#9d79c8']];while(c.parties.length<6){const [name,color]=founding[c.parties.length-3];c.parties.push({name,candidate:null,color,campaign:0,share:8,seats:0});}
+ const founding=[['Cumhuriyetçi Merkez','#6e8bd5'],['Halkçı Yenilik','#dc8d52'],['Özgürlük Birliği','#9d79c8']];while(c.parties.length<6){const [name,color]=founding[c.parties.length%3];c.parties.push({name,candidate:null,color,campaign:0,share:8,seats:0});}
  c.parties.forEach((p,i)=>{if(p.closed)return;if(p.candidate==null||!G.ps[p.candidate]?.alive)p.candidate=mkP({r:c.cap,pos:'parti',party:p.name,fame:45,org:40}).id;p.campaign ??=0;p.share ??=i===0?45:i===1?35:20;p.seats ??=0;});
  if(c.parliamentGovernment!==c.leader&&!c.parties.some(p=>!p.closed&&p.candidate===c.leader)){c.parties[c.incumbentParty>=0&&c.incumbentParty<c.parties.length&&!c.parties[c.incumbentParty].closed?c.incumbentParty:c.parties.findIndex(p=>!p.closed)].candidate=c.leader;}
  c.electionDue ??= G.turn+nextIn(c,8,0);

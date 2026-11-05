@@ -13,7 +13,7 @@ test.beforeEach(async({page})=>{
     for(const country of G.cs)for(const key of Object.keys(country.rel))country.rel[key]=50;
     for(const r of crs(c)){r.edu=40;r.infra=40;r.wealth=50;r.sup=20;r.unemployment=15;}
     updEcon(c);G.periodBaseline={c:c.id,turn:G.turn,metrics:countryMetrics(c)};G.periodEffects=[];
-    assassinationRisk=()=>0;unrestRisk=()=>0;drawEvent=()=>{};storyStep=()=>{};
+    assassinationRisk=()=>0;unrestRisk=()=>0;createWorldCrisis=()=>{};drawEvent=()=>{};storyStep=()=>{};
     render();
   });
 });
@@ -203,3 +203,4 @@ test('older newspaper entries without explanations remain readable',async({page}
   });
   expect(s).toContain('ÜLKENİN SESİ');expect(s).not.toContain('paper-explanation');
 });
+
